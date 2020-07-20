@@ -1,0 +1,8 @@
+[package]
+name = "block-grid"
+version = "0.1.0"
+authors = ["Gunvir Ranu <g1ranu@gmail.com>"]
+description = "A lightweight cache-conscious blocked/tiled 2D array."
+edition = "2018"
+license = "MIT"
+publish = false
