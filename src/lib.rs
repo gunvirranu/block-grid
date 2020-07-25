@@ -7,7 +7,7 @@ use std::ops::{Index, IndexMut};
 
 type Coords = (usize, usize);
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BlockGrid<T, B: BlockDim> {
     rows: usize,
     cols: usize,
@@ -96,23 +96,34 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
     }
 }
 
+macro_rules! impl_index {
+    () => {
+        fn index(&self, coords: Coords) -> &Self::Output {
+            // TODO: Benchmark against unchecked
+            match self.get(coords) {
+                Some(x) => x,
+                None => panic!("Index out of bounds"),
+            }
+        }
+    };
+}
+
+macro_rules! impl_index_mut {
+    () => {
+        fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
+            match self.get_mut(coords) {
+                Some(x) => x,
+                None => panic!("Index out of bounds"),
+            }
+        }
+    };
+}
+
 impl<T, B: BlockDim> Index<Coords> for BlockGrid<T, B> {
     type Output = T;
-
-    fn index(&self, coords: Coords) -> &Self::Output {
-        // TODO: Benchmark against unchecked
-        match self.get(coords) {
-            Some(x) => x,
-            None => panic!("Index out of bounds"),
-        }
-    }
+    impl_index!();
 }
 
 impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
-    fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
-        match self.get_mut(coords) {
-            Some(x) => x,
-            None => panic!("Index out of bounds"),
-        }
-    }
+    impl_index_mut!();
 }
