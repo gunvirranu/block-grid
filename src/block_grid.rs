@@ -4,7 +4,7 @@ use crate::{BlockDim, Coords};
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct BlockGrid<T, B: BlockDim> {
     rows: usize,
     cols: usize,
@@ -23,6 +23,12 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
             buf: vec![elem; rows * cols],
             _phantom: PhantomData,
         })
+    }
+}
+
+impl<T: Clone + Default, B: BlockDim> BlockGrid<T, B> {
+    pub fn new(rows: usize, cols: usize) -> Result<Self, ()> {
+        Self::filled(rows, cols, T::default())
     }
 }
 
@@ -235,7 +241,7 @@ mod tests {
     #[test]
     fn test_row_col_size() {
         for &(rows, cols) in GOOD_SIZES {
-            let grid = BGrid::filled(rows, cols, 7).unwrap();
+            let grid = BGrid::new(rows, cols).unwrap();
             assert_eq!(grid.rows(), rows);
             assert_eq!(grid.cols(), cols);
             assert_eq!(grid.size(), rows * cols);
@@ -270,7 +276,7 @@ mod tests {
     #[test]
     fn test_block_size() {
         for &(rows, cols) in GOOD_SIZES {
-            let grid = BGrid::filled(rows, cols, 7).unwrap();
+            let grid = BGrid::new(rows, cols).unwrap();
             assert_eq!(grid.row_blocks() * B::WIDTH, rows);
             assert_eq!(grid.col_blocks() * B::WIDTH, cols);
             assert_eq!(grid.blocks() * B::AREA, grid.size());

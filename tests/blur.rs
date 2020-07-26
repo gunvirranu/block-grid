@@ -48,7 +48,7 @@ where
 }
 
 fn generic_test_blur_by_index<B: BlockDim>(rows: usize, cols: usize) {
-    let mut in_bg = BlockGrid::<u8, B>::filled(rows, cols, 0u8).unwrap();
+    let mut in_bg = BlockGrid::<u8, B>::new(rows, cols).unwrap();
     let mut out_bg = in_bg.clone();
 
     let mut in_ar = Array2D::filled_with(0, rows, cols);
