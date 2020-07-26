@@ -266,4 +266,14 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_block_size() {
+        for &(rows, cols) in GOOD_SIZES {
+            let grid = BGrid::filled(rows, cols, 7).unwrap();
+            assert_eq!(grid.row_blocks() * B::WIDTH, rows);
+            assert_eq!(grid.col_blocks() * B::WIDTH, cols);
+            assert_eq!(grid.blocks() * B::AREA, grid.size());
+        }
+    }
 }
