@@ -1,9 +1,12 @@
 mod block_width;
+mod iters;
 
 pub use block_width::{BlockDim, BlockWidth};
 
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
+
+use iters::BlockIter;
 
 type Coords = (usize, usize);
 
@@ -103,6 +106,14 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     pub fn each_iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
         self.buf.iter_mut()
+    }
+
+    pub fn block_iter(&self) -> BlockIter<T, B> {
+        BlockIter {
+            cur_block: 0,
+            max_blocks: self.num_blocks(),
+            grid: self,
+        }
     }
 
     fn calc_index(&self, coords: Coords) -> usize {
