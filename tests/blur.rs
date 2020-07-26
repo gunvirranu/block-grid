@@ -1,10 +1,13 @@
+extern crate array2d;
 extern crate block_grid;
+extern crate fastrand;
 
 use std::convert::{From, Into};
 use std::marker::Sized;
 use std::ops::{Index, IndexMut};
 
-use block_grid::Coords;
+use array2d::Array2D;
+use block_grid::{BlockDim, BlockGrid, BlockWidth, Coords};
 
 fn blur_by_index<T>(rows: usize, cols: usize, img: &T, out: &mut T)
 where
@@ -42,4 +45,37 @@ where
             out[(i, j)] = ((tot / 9) as u8).into();
         }
     }
+}
+
+fn generic_test_blur_by_index<B: BlockDim>(rows: usize, cols: usize) {
+    let mut in_bg = BlockGrid::<u8, B>::filled(rows, cols, 0u8).unwrap();
+    let mut out_bg = in_bg.clone();
+
+    let mut in_ar = Array2D::filled_with(0, rows, cols);
+    let mut out_ar = in_ar.clone();
+
+    fastrand::seed(1234);
+    for i in 0..rows {
+        for j in 0..cols {
+            let x = fastrand::u8(..);
+            in_bg[(i, j)] = x;
+            in_ar[(i, j)] = x;
+        }
+    }
+
+    blur_by_index(rows, cols, &in_bg, &mut out_bg);
+    blur_by_index(rows, cols, &in_ar, &mut out_ar);
+
+    for i in 0..rows {
+        for j in 0..cols {
+            assert_eq!(out_bg[(i, j)], out_ar[(i, j)]);
+        }
+    }
+}
+
+#[test]
+fn test_blur_by_index() {
+    generic_test_blur_by_index::<BlockWidth::U2>(100, 100);
+    generic_test_blur_by_index::<BlockWidth::U8>(256, 1024);
+    generic_test_blur_by_index::<BlockWidth::U64>(192, 320);
 }
