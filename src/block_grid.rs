@@ -235,4 +235,29 @@ mod tests {
             assert_eq!(grid.size(), rows * cols);
         }
     }
+
+    #[test]
+    fn test_get_and_get_mut() {
+        for &(rows, cols) in GOOD_SIZES {
+            let mut grid = BGrid::filled(rows, cols, 7).unwrap();
+            // Try invalid coordinates
+            for &coords in &[(rows, 0), (0, cols), (rows, cols)] {
+                assert!(grid.get(coords).is_none());
+            }
+            // Test each coordinate, and mutate
+            for i in 0..rows {
+                for j in 0..cols {
+                    assert_eq!(*grid.get((i, j)).unwrap(), 7);
+                    let x = grid.get_mut((i, j)).unwrap();
+                    *x = cols * i + j;
+                }
+            }
+            // Check again
+            for i in 0..rows {
+                for j in 0..cols {
+                    assert_eq!(*grid.get((i, j)).unwrap(), cols * i + j);
+                }
+            }
+        }
+    }
 }
