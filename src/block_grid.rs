@@ -75,10 +75,16 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     pub fn get(&self, coords: Coords) -> Option<&T> {
+        if !self.contains(coords) {
+            return None;
+        }
         self.buf.get(self.calc_index(coords))
     }
 
     pub fn get_mut(&mut self, coords: Coords) -> Option<&mut T> {
+        if !self.contains(coords) {
+            return None;
+        }
         let ind = self.calc_index(coords);
         self.buf.get_mut(ind)
     }
