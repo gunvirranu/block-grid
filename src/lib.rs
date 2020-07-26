@@ -97,6 +97,14 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     // TODO: Impl iterators
 
+    pub fn each_iter(&self) -> impl Iterator<Item = &T> {
+        self.buf.iter()
+    }
+
+    pub fn each_iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.buf.iter_mut()
+    }
+
     fn calc_index(&self, coords: Coords) -> usize {
         // Get block
         let block_coords = self.calc_block(coords);
