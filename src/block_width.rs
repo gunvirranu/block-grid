@@ -1,4 +1,4 @@
-pub trait BlockDim {
+pub trait BlockDim: Clone {
     const SHIFT: usize;
 
     const WIDTH: usize = 1 << Self::SHIFT;
@@ -15,7 +15,7 @@ macro_rules! make_block_width [
         }
 
         $(
-            #[derive(Copy, Clone, Debug)]
+            #[derive(Clone, Copy, Debug)]
             pub struct $name;
 
             impl BlockDim for $name {
