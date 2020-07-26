@@ -44,6 +44,10 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         }
     }
 
+    pub fn take_raw_vec(self) -> Vec<T> {
+        self.buf
+    }
+
     // TODO: Impl row-major constructor
     // TODO: Impl col-major constructor
 
@@ -53,6 +57,10 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     pub fn cols(&self) -> usize {
         self.cols
+    }
+
+    pub fn size(&self) -> usize {
+        self.rows() * self.cols()
     }
 
     pub fn get(&self, coords: Coords) -> Option<&T> {
@@ -255,4 +263,26 @@ impl<'a, T, B: BlockDim> Index<Coords> for SubBlockMut<'a, T, B> {
 
 impl<'a, T, B: BlockDim> IndexMut<Coords> for SubBlockMut<'a, T, B> {
     impl_index_mut!();
+}
+
+mod tests {
+    type T = usize;
+    type B = super::BlockWidth::U2;
+    type BlockGrid = super::BlockGrid<T, B>;
+
+    #[test]
+    fn test_from_raw_vec() {
+        let (rows, cols) = (4, 6);
+        let data: Vec<T> = (0..(rows * cols)).collect();
+        let grid = BlockGrid::from_raw_vec(rows, cols, data.clone());
+        assert_eq!(data.len(), grid.size());
+    }
+
+    #[should_panic]
+    #[test]
+    fn test_from_raw_vec_invalid_vec() {
+        let (rows, cols) = (4, 6);
+        let data: Vec<T> = (0..(rows * cols)).collect();
+        let _grid = BlockGrid::from_raw_vec(rows + 1, cols + 1, data);
+    }
 }
