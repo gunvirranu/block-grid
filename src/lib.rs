@@ -329,4 +329,14 @@ mod tests {
             assert!(grid.is_err());
         }
     }
+
+    #[test]
+    fn test_row_col_size() {
+        for &(rows, cols) in GOOD_SIZES {
+            let grid = BlockGrid::filled(rows, cols, 3).unwrap();
+            assert_eq!(grid.rows(), rows);
+            assert_eq!(grid.cols(), cols);
+            assert_eq!(grid.size(), rows * cols);
+        }
+    }
 }
