@@ -116,15 +116,23 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     fn calc_block_index(&self, (b_row, b_col): Coords) -> usize {
-        B::AREA * (self.row_blocks() * b_row + b_col)
+        B::AREA * (self.col_blocks() * b_row + b_col)
     }
 
     fn calc_sub_index(&self, (s_row, s_col): Coords) -> usize {
-        B::WIDTH + s_row + s_col
+        B::WIDTH * s_row + s_col
     }
 
     fn row_blocks(&self) -> usize {
         self.rows >> B::SHIFT
+    }
+
+    fn col_blocks(&self) -> usize {
+        self.cols >> B::SHIFT
+    }
+
+    fn num_blocks(&self) -> usize {
+        self.row_blocks() * self.col_blocks()
     }
 
     fn calc_block(&self, (row, col): Coords) -> Coords {
