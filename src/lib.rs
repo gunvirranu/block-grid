@@ -34,10 +34,7 @@ pub struct SubBlockMut<'a, T, B: BlockDim> {
 
 impl<T, B: BlockDim> BlockGrid<T, B> {
     pub fn from_raw_vec(rows: usize, cols: usize, elems: Vec<T>) -> Result<Self, ()> {
-        if rows == 0 || cols == 0 || rows * cols != elems.len() {
-            return Err(());
-        }
-        if rows % B::WIDTH != 0 || cols % B::WIDTH != 0 {
+        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
             return Err(());
         }
         Ok(Self {
@@ -128,6 +125,10 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         }
     }
 
+    fn valid_size(rows: usize, cols: usize) -> bool {
+        rows != 0 && cols != 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
+    }
+
     fn calc_index(&self, coords: Coords) -> usize {
         // Get block
         let block_coords = self.calc_block(coords);
@@ -168,14 +169,16 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 }
 
 impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
-    pub fn filled(rows: usize, cols: usize, elem: T) -> Self {
-        // TODO: Check if `rows` and `cols` divide block-size
-        Self {
+    pub fn filled(rows: usize, cols: usize, elem: T) -> Result<Self, ()> {
+        if !Self::valid_size(rows, cols) {
+            return Err(());
+        }
+        Ok(Self {
             rows,
             cols,
             buf: vec![elem; rows * cols],
             _phantom: PhantomData,
-        }
+        })
     }
 }
 
@@ -269,35 +272,60 @@ impl<'a, T, B: BlockDim> IndexMut<Coords> for SubBlockMut<'a, T, B> {
     impl_index_mut!();
 }
 
+#[cfg(test)]
 mod tests {
+    use super::Coords;
+
     type T = usize;
     // TODO: Look into testing generically in a not-ugly way
     type B = super::BlockWidth::U2;
     type BlockGrid = super::BlockGrid<T, B>;
 
+    const GOOD_SIZES: &[Coords] = &[(2, 2), (4, 6), (100, 100), (2048, 8192)];
+    const BAD_SIZES: &[Coords] = &[(0, 0), (0, 1), (3, 5), (7, 13)];
+
     #[test]
     fn test_from_raw_vec() {
-        for &(rows, cols) in &[(2, 2), (4, 6), (2048, 8192)] {
+        for &(rows, cols) in GOOD_SIZES {
             let data: Vec<T> = (0..(rows * cols)).collect();
             let grid = BlockGrid::from_raw_vec(rows, cols, data.clone()).unwrap();
             assert_eq!(data.len(), grid.size());
+            for (&x, &y) in grid.each_iter().zip(data.iter()) {
+                assert_eq!(x, y);
+            }
         }
     }
 
     #[test]
-    fn test_from_raw_vec_invalid_vec() {
+    fn test_from_raw_vec_invalid() {
         for &(rows, cols) in &[(2, 2), (4, 6), (2048, 8192)] {
             let data: Vec<T> = (0..(rows * cols)).collect();
             let grid = BlockGrid::from_raw_vec(rows + 1, cols + 1, data);
             assert!(grid.is_err());
         }
+
+        for &(rows, cols) in BAD_SIZES {
+            let data: Vec<T> = (0..(rows * cols)).collect();
+            let grid = BlockGrid::from_raw_vec(rows, cols, data);
+            assert!(grid.is_err());
+        }
     }
 
     #[test]
-    fn test_from_raw_vec_invalid_len() {
-        for &(rows, cols) in &[(0, 0), (0, 1), (3, 5), (7, 13)] {
-            let data: Vec<T> = (0..(rows * cols)).collect();
-            let grid = BlockGrid::from_raw_vec(rows, cols, data);
+    fn test_filled() {
+        for &(rows, cols) in GOOD_SIZES {
+            let grid = BlockGrid::filled(rows, cols, 7).unwrap();
+            assert_eq!(grid.size(), rows * cols);
+            for &x in grid.each_iter() {
+                assert_eq!(x, 7);
+            }
+        }
+    }
+
+    #[test]
+    fn test_filled_invalid() {
+        for &(rows, cols) in BAD_SIZES {
+            let grid = BlockGrid::filled(rows, cols, 7);
             assert!(grid.is_err());
         }
     }
