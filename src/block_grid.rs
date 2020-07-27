@@ -1,4 +1,4 @@
-use crate::iters::BlockIter;
+use crate::iters::{BlockIter, RowMajorIter};
 use crate::{BlockDim, Coords};
 
 use std::marker::PhantomData;
@@ -115,6 +115,14 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     pub fn each_iter_mut(&mut self) -> impl Iterator<Item = &mut T> + ExactSizeIterator {
         self.buf.iter_mut()
+    }
+
+    pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
+        RowMajorIter {
+            row: 0,
+            col: 0,
+            grid: self,
+        }
     }
 
     // TODO: More iterators
@@ -304,6 +312,25 @@ mod tests {
                     bi += B::WIDTH;
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_row_major_iter() {
+        for &(rows, cols) in GOOD_SIZES {
+            let data: Vec<T> = (0..(rows * cols)).collect();
+            let grid = BGrid::from_raw_vec(rows, cols, data).unwrap();
+            assert_eq!(grid.row_major_iter().count(), grid.size());
+
+            let mut it = grid.row_major_iter();
+            for i in 0..rows {
+                for j in 0..cols {
+                    let (c, &e) = it.next().unwrap();
+                    assert_eq!(c, (i, j));
+                    assert_eq!(e, grid[(i, j)]);
+                }
+            }
+            assert!(it.next().is_none());
         }
     }
 }
