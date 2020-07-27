@@ -109,11 +109,11 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.get_unchecked_mut(ind)
     }
 
-    pub fn each_iter(&self) -> impl Iterator<Item = &T> {
+    pub fn each_iter(&self) -> impl Iterator<Item = &T> + ExactSizeIterator {
         self.buf.iter()
     }
 
-    pub fn each_iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+    pub fn each_iter_mut(&mut self) -> impl Iterator<Item = &mut T> + ExactSizeIterator {
         self.buf.iter_mut()
     }
 
@@ -189,7 +189,7 @@ mod tests {
     type B = BlockWidth::U2;
     type BGrid = BlockGrid<T, B>;
 
-    const GOOD_SIZES: &[Coords] = &[(2, 2), (4, 6), (100, 100), (2048, 8192)];
+    const GOOD_SIZES: &[Coords] = &[(2, 2), (4, 6), (100, 100), (64, 256)];
     const BAD_SIZES: &[Coords] = &[(0, 0), (0, 1), (3, 5), (7, 13)];
 
     #[test]
@@ -280,6 +280,30 @@ mod tests {
             assert_eq!(grid.row_blocks() * B::WIDTH, rows);
             assert_eq!(grid.col_blocks() * B::WIDTH, cols);
             assert_eq!(grid.blocks() * B::AREA, grid.size());
+        }
+    }
+
+    // TODO: Consider moving this to `iters.rs`?
+    #[test]
+    fn test_block_iter() {
+        for &(rows, cols) in GOOD_SIZES {
+            let data: Vec<T> = (0..(rows * cols)).collect();
+            let grid = BGrid::from_raw_vec(rows, cols, data).unwrap();
+            assert_eq!(grid.block_iter().count(), grid.blocks());
+
+            let (mut bi, mut bj): Coords = (0, 0);
+            for block in grid.block_iter() {
+                for si in 0..B::WIDTH {
+                    for sj in 0..B::WIDTH {
+                        assert_eq!(block[(si, sj)], grid[(bi + si, bj + sj)]);
+                    }
+                }
+                bj += B::WIDTH;
+                if bj == grid.cols() {
+                    bj = 0;
+                    bi += B::WIDTH;
+                }
+            }
         }
     }
 }
