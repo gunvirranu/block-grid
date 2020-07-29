@@ -7,7 +7,7 @@ use std::marker::Sized;
 use std::ops::{Index, IndexMut};
 
 use array2d::Array2D;
-use block_grid::{BlockDim, BlockGrid, BlockWidth, Coords};
+use block_grid::{BlockDim, BlockGrid, BlockWidth::*, Coords};
 
 fn blur_by_index<T>(rows: usize, cols: usize, img: &T, out: &mut T)
 where
@@ -74,8 +74,26 @@ fn generic_test_blur_by_index<B: BlockDim>(rows: usize, cols: usize) {
 }
 
 #[test]
-fn test_blur_by_index() {
-    generic_test_blur_by_index::<BlockWidth::U2>(100, 100);
-    generic_test_blur_by_index::<BlockWidth::U8>(256, 1024);
-    generic_test_blur_by_index::<BlockWidth::U64>(192, 320);
+fn test_blur_by_index_2() {
+    generic_test_blur_by_index::<U2>(100, 100);
+}
+
+#[test]
+fn test_blur_by_index_4() {
+    generic_test_blur_by_index::<U4>(4, 12);
+}
+
+#[test]
+fn test_blur_by_index_8() {
+    generic_test_blur_by_index::<U8>(128, 512);
+}
+
+#[test]
+fn test_blur_by_index_16() {
+    generic_test_blur_by_index::<U16>(16, 16);
+}
+
+#[test]
+fn test_blur_by_index_32() {
+    generic_test_blur_by_index::<U32>(96, 224);
 }
