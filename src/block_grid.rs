@@ -201,9 +201,11 @@ impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
 }
 
 impl<'a, T, B: BlockDim> SubBlock<'a, T, B> {
-    pub fn get(&self, coords: Coords) -> Option<&T> {
-        // FIXME: Add out of bounds check
-        self.grid.get(self.calc_coords(coords))
+    pub fn get(&self, (row, col): Coords) -> Option<&T> {
+        if row >= B::WIDTH || col >= B::WIDTH {
+            return None;
+        }
+        self.grid.get(self.calc_coords((row, col)))
     }
 
     // TODO: Document unsafety

@@ -91,10 +91,9 @@ fn gen_block_iter<B: BlockDim>() {
                 assert_eq!(block[(si, sj)], grid[(bi + si, bj + sj)]);
             }
         }
-        // FIXME: Solve
-        // assert!(block.get((B::WIDTH, B::WIDTH - 1)).is_none());
-        // assert!(block.get((B::WIDTH - 1, B::WIDTH)).is_none());
-        // assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
+        assert!(block.get((B::WIDTH, B::WIDTH - 1)).is_none());
+        assert!(block.get((B::WIDTH - 1, B::WIDTH)).is_none());
+        assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
 
         bj += B::WIDTH;
         if bj == grid.cols() {
