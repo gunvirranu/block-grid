@@ -119,8 +119,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
         RowMajorIter {
-            row: 0,
-            col: 0,
+            coords: (0, 0),
             grid: self,
         }
     }
@@ -144,7 +143,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     fn valid_size(rows: usize, cols: usize) -> bool {
-        rows != 0 && cols != 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
+        rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
     }
 
     fn calc_index(&self, coords: Coords) -> usize {

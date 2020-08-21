@@ -12,6 +12,7 @@ pub struct SubBlock<'a, T, B: BlockDim> {
 
 impl<'a, T, B: BlockDim> SubBlock<'a, T, B> {
     pub fn get(&self, coords: Coords) -> Option<&T> {
+        // FIXME: Add out of bounds check
         self.grid.buf.get(self.calc_index(coords))
     }
 

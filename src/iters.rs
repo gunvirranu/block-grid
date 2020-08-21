@@ -10,8 +10,7 @@ pub struct BlockIter<'a, T, B: BlockDim> {
 }
 
 pub struct RowMajorIter<'a, T, B: BlockDim> {
-    pub(crate) row: usize,
-    pub(crate) col: usize,
+    pub(crate) coords: Coords,
     pub(crate) grid: &'a BlockGrid<T, B>,
 }
 
@@ -42,14 +41,13 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
     type Item = (Coords, &'a T);
 
     fn next(&mut self) -> Option<Self::Item> {
-        let (i, j) = (self.row, self.col);
-        self.col += 1;
-        if self.col >= self.grid.cols() {
-            self.col = 0;
-            self.row += 1;
+        let c = self.coords;
+        self.coords.1 += 1;
+        if self.coords.1 >= self.grid.cols() {
+            self.coords = (c.0 + 1, 0);
         }
-        let elem = self.grid.get((i, j))?;
-        Some(((i, j), elem))
+        let elem = self.grid.get(c)?;
+        Some((c, elem))
     }
 }
 

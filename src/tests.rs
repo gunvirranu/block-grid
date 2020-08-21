@@ -183,6 +183,7 @@ fn test_block_size() {
 }
 
 #[test]
+#[ignore]
 fn test_block_iter() {
     test_for!(gen_block_iter; U2, U4, U8, U16, U32);
 }
