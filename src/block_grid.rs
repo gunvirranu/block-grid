@@ -19,6 +19,12 @@ pub struct SubBlock<'a, T, B: BlockDim> {
     pub(crate) grid: &'a BlockGrid<T, B>,
 }
 
+#[derive(Debug)]
+pub struct SubBlockMut<'a, T, B: BlockDim> {
+    pub(crate) block_coords: Coords,
+    pub(crate) grid: &'a mut BlockGrid<T, B>,
+}
+
 impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
     pub fn filled(rows: usize, cols: usize, elem: T) -> Result<Self, ()> {
         if !Self::valid_size(rows, cols) {
@@ -225,6 +231,57 @@ impl<'a, T, B: BlockDim> Index<Coords> for SubBlock<'a, T, B> {
 
     fn index(&self, coords: Coords) -> &Self::Output {
         match self.get(coords) {
+            Some(x) => x,
+            None => panic!("Index out of bounds"),
+        }
+    }
+}
+
+impl<'a, T, B: BlockDim> SubBlockMut<'a, T, B> {
+    pub fn get(&self, (row, col): Coords) -> Option<&T> {
+        if row >= B::WIDTH || col >= B::WIDTH {
+            return None;
+        }
+        self.grid.get(self.calc_coords((row, col)))
+    }
+
+    pub fn get_mut(&mut self, (row, col): Coords) -> Option<&mut T> {
+        if row >= B::WIDTH || col >= B::WIDTH {
+            return None;
+        }
+        self.grid.get_mut(self.calc_coords((row, col)))
+    }
+
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
+        self.grid.get_unchecked(self.calc_coords(coords))
+    }
+
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &T {
+        self.grid.get_unchecked_mut(self.calc_coords(coords))
+    }
+
+    fn calc_coords(&self, (row, col): Coords) -> Coords {
+        let (block_row, block_col) = self.block_coords;
+        ((block_row << B::SHIFT) + row, (block_col << B::SHIFT) + col)
+    }
+}
+
+impl<'a, T, B: BlockDim> Index<Coords> for SubBlockMut<'a, T, B> {
+    type Output = T;
+
+    fn index(&self, coords: Coords) -> &Self::Output {
+        match self.get(coords) {
+            Some(x) => x,
+            None => panic!("Index out of bounds"),
+        }
+    }
+}
+
+impl<'a, T, B: BlockDim> IndexMut<Coords> for SubBlockMut<'a, T, B> {
+    fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
+        match self.get_mut(coords) {
             Some(x) => x,
             None => panic!("Index out of bounds"),
         }
