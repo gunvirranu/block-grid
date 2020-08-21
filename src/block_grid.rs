@@ -12,6 +12,13 @@ pub struct BlockGrid<T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+// TODO: Figure out how `PartialEq`/`Eq` should work
+#[derive(Debug)]
+pub struct SubBlock<'a, T, B: BlockDim> {
+    pub(crate) block_coords: Coords,
+    pub(crate) grid: &'a BlockGrid<T, B>,
+}
+
 impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
     pub fn filled(rows: usize, cols: usize, elem: T) -> Result<Self, ()> {
         if !Self::valid_size(rows, cols) {
@@ -117,6 +124,13 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.iter_mut()
     }
 
+    pub fn block_iter(&self) -> BlockIter<T, B> {
+        BlockIter {
+            block_coords: (0, 0),
+            grid: self,
+        }
+    }
+
     pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
         RowMajorIter {
             coords: (0, 0),
@@ -133,14 +147,6 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     // TODO: More iterators
-
-    pub fn block_iter(&self) -> BlockIter<T, B> {
-        BlockIter {
-            cur_block: 0,
-            max_blocks: self.blocks(),
-            grid: self,
-        }
-    }
 
     fn valid_size(rows: usize, cols: usize) -> bool {
         rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
@@ -160,7 +166,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         B::AREA * (self.col_blocks() * b_row + b_col)
     }
 
-    pub(crate) fn calc_sub_index(&self, (s_row, s_col): Coords) -> usize {
+    fn calc_sub_index(&self, (s_row, s_col): Coords) -> usize {
         B::WIDTH * s_row + s_col
     }
 
@@ -188,6 +194,35 @@ impl<T, B: BlockDim> Index<Coords> for BlockGrid<T, B> {
 impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
         match self.get_mut(coords) {
+            Some(x) => x,
+            None => panic!("Index out of bounds"),
+        }
+    }
+}
+
+impl<'a, T, B: BlockDim> SubBlock<'a, T, B> {
+    pub fn get(&self, coords: Coords) -> Option<&T> {
+        // FIXME: Add out of bounds check
+        self.grid.get(self.calc_coords(coords))
+    }
+
+    // TODO: Document unsafety
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
+        self.grid.get_unchecked(self.calc_coords(coords))
+    }
+
+    fn calc_coords(&self, (row, col): Coords) -> Coords {
+        let (block_row, block_col) = self.block_coords;
+        ((block_row << B::SHIFT) + row, (block_col << B::SHIFT) + col)
+    }
+}
+
+impl<'a, T, B: BlockDim> Index<Coords> for SubBlock<'a, T, B> {
+    type Output = T;
+
+    fn index(&self, coords: Coords) -> &Self::Output {
+        match self.get(coords) {
             Some(x) => x,
             None => panic!("Index out of bounds"),
         }

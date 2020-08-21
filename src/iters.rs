@@ -4,8 +4,7 @@ use std::ptr::NonNull;
 use crate::{BlockDim, BlockGrid, Coords, SubBlock};
 
 pub struct BlockIter<'a, T, B: BlockDim> {
-    pub(crate) cur_block: usize,
-    pub(crate) max_blocks: usize,
+    pub(crate) block_coords: Coords,
     pub(crate) grid: &'a BlockGrid<T, B>,
 }
 
@@ -24,15 +23,17 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
     type Item = SubBlock<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cur_block >= self.max_blocks {
+        if self.block_coords.0 >= self.grid.row_blocks() {
             return None;
         }
         let block = SubBlock {
-            b_ind: B::AREA * self.cur_block,
+            block_coords: self.block_coords,
             grid: self.grid,
-            _phantom: PhantomData,
         };
-        self.cur_block += 1;
+        self.block_coords.1 += 1;
+        if self.block_coords.1 >= self.grid.col_blocks() {
+            self.block_coords = (self.block_coords.0 + 1, 0);
+        }
         Some(block)
     }
 }
