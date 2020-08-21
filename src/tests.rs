@@ -120,6 +120,29 @@ fn gen_row_major_iter<B: BlockDim>() {
     assert!(it.next().is_none());
 }
 
+fn gen_row_major_iter_mut<B: BlockDim>() {
+    let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
+    let mut grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
+    assert_eq!(grid.row_major_iter_mut().count(), grid.size());
+    // Mutate while iterating
+    let mut it = grid.row_major_iter_mut();
+    for i in 0..rows {
+        for j in 0..cols {
+            let (c, e) = it.next().unwrap();
+            assert_eq!(c, (i, j));
+            assert_eq!(*e, 7);
+            *e = rows * i + j;
+        }
+    }
+    assert!(it.next().is_none());
+    // Check if mutated correctly
+    for i in 0..rows {
+        for j in 0..cols {
+            assert_eq!(grid[(i, j)], rows * i + j);
+        }
+    }
+}
+
 macro_rules! test_for {
     ($f: ident; $($B: ty),+) => {
         $(
@@ -167,4 +190,9 @@ fn test_block_iter() {
 #[test]
 fn test_row_major_iter() {
     test_for!(gen_row_major_iter; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_row_major_iter_mut() {
+    test_for!(gen_row_major_iter_mut; U2, U4, U8, U16, U32);
 }

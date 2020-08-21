@@ -1,4 +1,4 @@
-use crate::iters::{BlockIter, RowMajorIter};
+use crate::iters::{BlockIter, RowMajorIter, RowMajorIterMut};
 use crate::{BlockDim, Coords};
 
 use std::marker::PhantomData;
@@ -122,6 +122,14 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
             row: 0,
             col: 0,
             grid: self,
+        }
+    }
+
+    pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<T, B> {
+        RowMajorIterMut {
+            coords: (0, 0),
+            grid: self.into(), // `self` is a valid reference
+            _phantom: PhantomData,
         }
     }
 
