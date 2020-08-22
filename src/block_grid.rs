@@ -79,7 +79,32 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
         Ok(grid)
     }
 
-    // TODO: Impl col-major constructor
+    pub fn from_col_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
+        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
+            return Err(());
+        }
+        let mut grid = Self {
+            rows,
+            cols,
+            buf: Vec::with_capacity(rows * cols),
+            _phantom: PhantomData,
+        };
+        // Iterate in memory order by index and pull values from col-major
+        // Yeah, this too is kinda eh...
+        for bi in (0..grid.rows()).step_by(B::WIDTH) {
+            for bj in (0..grid.cols()).step_by(B::WIDTH) {
+                for si in 0..B::WIDTH {
+                    for sj in 0..B::WIDTH {
+                        let (row, col) = (bi + si, bj + sj);
+                        let col_maj_ind = grid.rows() * col + row;
+                        grid.buf.push(elems[col_maj_ind].clone());
+                    }
+                }
+            }
+        }
+        assert_eq!(grid.buf.len(), grid.rows() * grid.cols());
+        Ok(grid)
+    }
 }
 
 impl<T, B: BlockDim> BlockGrid<T, B> {

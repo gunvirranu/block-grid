@@ -64,6 +64,27 @@ fn gen_from_row_major_invalid<B: BlockDim>() {
     }
 }
 
+fn gen_from_col_major<B: BlockDim>() {
+    let (rows, cols) = (3 * B::WIDTH, 3 * B::WIDTH);
+    let data: Vec<_> = (0..(rows * cols)).collect();
+    let grid = BG::<_, B>::from_col_major(rows, cols, &data).unwrap();
+    assert_eq!((grid.rows(), grid.cols()), (rows, cols));
+    assert_eq!(grid.size(), rows * cols);
+    for j in 0..cols {
+        for i in 0..rows {
+            assert_eq!(grid[(i, j)], data[rows * j + i]);
+        }
+    }
+}
+
+fn gen_from_col_major_invalid<B: BlockDim>() {
+    for &(rows, cols) in BAD_SIZES {
+        let data: Vec<_> = (0..(rows * cols)).collect();
+        let grid = BG::<_, B>::from_col_major(rows, cols, &data);
+        assert!(grid.is_err());
+    }
+}
+
 fn gen_get_and_get_mut<B: BlockDim>() {
     let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
     let mut grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
@@ -232,6 +253,16 @@ fn test_from_row_major() {
 #[test]
 fn test_from_row_major_invalid() {
     test_for!(gen_from_row_major_invalid; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_from_col_major() {
+    test_for!(gen_from_col_major; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_from_col_major_invalid() {
+    test_for!(gen_from_col_major_invalid; U2, U4, U8, U16, U32);
 }
 
 #[test]
