@@ -2,46 +2,24 @@ use crate::{BlockWidth::*, *};
 
 type BG<T, B> = BlockGrid<T, B>;
 
-const BAD_SIZES: &[Coords] = &[(0, 0), (1, 0), (0, 1), (3, 5), (7, 13)];
-
 fn gen_from_raw_vec<B: BlockDim>() {
     let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
     let data: Vec<_> = (0..(rows * cols)).collect();
     let grid = BG::<_, B>::from_raw_vec(rows, cols, data.clone()).unwrap();
-    assert_eq!(grid.rows(), rows);
-    assert_eq!(grid.cols(), cols);
+    assert_eq!((grid.rows(), grid.cols()), (rows, cols));
     assert_eq!(grid.size(), data.len());
     for (&x, &y) in grid.each_iter().zip(data.iter()) {
         assert_eq!(x, y);
     }
 }
 
-fn gen_from_raw_vec_invalid<B: BlockDim>() {
-    for &(rows, cols) in &[(2, 2), (3, 5), (4, 6)] {
-        let data: Vec<_> = (0..(rows * cols)).collect();
-        let grid = BG::<_, B>::from_raw_vec(rows + 1, cols + 1, data);
-        assert!(grid.is_err());
-    }
-    for &(rows, cols) in BAD_SIZES {
-        let data: Vec<_> = (0..(rows * cols)).collect();
-        let grid = BG::<_, B>::from_raw_vec(rows, cols, data);
-        assert!(grid.is_err());
-    }
-}
-
 fn gen_filled<B: BlockDim>() {
     let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
     let grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
+    assert_eq!((grid.rows(), grid.cols()), (rows, cols));
     assert_eq!(grid.size(), rows * cols);
     for &x in grid.each_iter() {
         assert_eq!(x, 7);
-    }
-}
-
-fn gen_filled_invalid<B: BlockDim>() {
-    for &(rows, cols) in BAD_SIZES {
-        let grid = BG::<_, B>::filled(rows, cols, 7);
-        assert!(grid.is_err());
     }
 }
 
@@ -49,18 +27,12 @@ fn gen_from_row_major<B: BlockDim>() {
     let (rows, cols) = (5 * B::WIDTH, 3 * B::WIDTH);
     let data: Vec<_> = (0..(rows * cols)).collect();
     let grid = BG::<_, B>::from_row_major(rows, cols, &data).unwrap();
+    assert_eq!((grid.rows(), grid.cols()), (rows, cols));
+    assert_eq!(grid.size(), rows * cols);
     for i in 0..rows {
         for j in 0..cols {
             assert_eq!(grid[(i, j)], data[cols * i + j]);
         }
-    }
-}
-
-fn gen_from_row_major_invalid<B: BlockDim>() {
-    for &(rows, cols) in BAD_SIZES {
-        let data: Vec<_> = (0..(rows * cols)).collect();
-        let grid = BG::<_, B>::from_row_major(rows, cols, &data);
-        assert!(grid.is_err());
     }
 }
 
@@ -77,12 +49,22 @@ fn gen_from_col_major<B: BlockDim>() {
     }
 }
 
-fn gen_from_col_major_invalid<B: BlockDim>() {
-    for &(rows, cols) in BAD_SIZES {
+fn gen_constructor_invalid<B: BlockDim>() {
+    // Try invalid sizes
+    for &(rows, cols) in &[(0, 0), (B::WIDTH, 0), (0, B::WIDTH), (3, 5), (7, 13)] {
         let data: Vec<_> = (0..(rows * cols)).collect();
-        let grid = BG::<_, B>::from_col_major(rows, cols, &data);
-        assert!(grid.is_err());
+        assert!(BG::<_, B>::from_raw_vec(rows, cols, data.clone()).is_err());
+        assert!(BG::<_, B>::filled(rows, cols, 7).is_err());
+        assert!(BG::<_, B>::from_row_major(rows, cols, &data).is_err());
+        assert!(BG::<_, B>::from_col_major(rows, cols, &data).is_err());
     }
+    // Try giving invalid data length
+    let (rows, cols) = (B::WIDTH, B::WIDTH);
+    let data: Vec<_> = (0..B::WIDTH).collect();
+    assert!(BG::<_, B>::filled(rows, cols, 9).is_ok());
+    assert!(BG::<_, B>::from_raw_vec(rows, cols, data.clone()).is_err());
+    assert!(BG::<_, B>::from_row_major(rows, cols, &data).is_err());
+    assert!(BG::<_, B>::from_col_major(rows, cols, &data).is_err());
 }
 
 fn gen_get_and_get_mut<B: BlockDim>() {
@@ -231,18 +213,8 @@ fn test_from_raw_vec() {
 }
 
 #[test]
-fn test_from_raw_vec_invalid() {
-    test_for!(gen_from_raw_vec_invalid; U2, U4, U8, U16, U32);
-}
-
-#[test]
 fn test_filled() {
     test_for!(gen_filled; U2, U4, U8, U16, U32);
-}
-
-#[test]
-fn test_filled_invalid() {
-    test_for!(gen_filled_invalid; U2, U4, U8, U16, U32);
 }
 
 #[test]
@@ -251,18 +223,13 @@ fn test_from_row_major() {
 }
 
 #[test]
-fn test_from_row_major_invalid() {
-    test_for!(gen_from_row_major_invalid; U2, U4, U8, U16, U32);
-}
-
-#[test]
 fn test_from_col_major() {
     test_for!(gen_from_col_major; U2, U4, U8, U16, U32);
 }
 
 #[test]
-fn test_from_col_major_invalid() {
-    test_for!(gen_from_col_major_invalid; U2, U4, U8, U16, U32);
+fn test_constructor_invalid() {
+    test_for!(gen_constructor_invalid; U2, U4, U8, U16, U32);
 }
 
 #[test]
