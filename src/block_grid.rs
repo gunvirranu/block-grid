@@ -45,6 +45,43 @@ impl<T: Clone + Default, B: BlockDim> BlockGrid<T, B> {
     }
 }
 
+impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
+    pub fn from_row_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
+        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
+            return Err(());
+        }
+        let mut grid = Self {
+            rows,
+            cols,
+            buf: Vec::with_capacity(rows * cols),
+            _phantom: PhantomData,
+        };
+        // Iterate in memory order by index and pull values from row-major.
+        // Yeah, this is kinda eh...
+        for bi in (0..grid.rows()).step_by(B::WIDTH) {
+            for bj in (0..grid.cols()).step_by(B::WIDTH) {
+                for si in 0..B::WIDTH {
+                    for sj in 0..B::WIDTH {
+                        let (row, col) = (bi + si, bj + sj);
+                        let row_maj_ind = grid.cols() * row + col;
+                        // There's no 'simple' way to do this without `Clone`,
+                        // because the row-major `elems` can't be easily drained
+                        // out of order.
+                        // TODO: A possible, but reallyy unsafe method could be
+                        //       to memcpy elements out of `Vec`, and then don't
+                        //       drop them the `Vec` is dropped. Investigate.
+                        grid.buf.push(elems[row_maj_ind].clone());
+                    }
+                }
+            }
+        }
+        assert_eq!(grid.buf.len(), grid.rows() * grid.cols());
+        Ok(grid)
+    }
+
+    // TODO: Impl col-major constructor
+}
+
 impl<T, B: BlockDim> BlockGrid<T, B> {
     pub fn from_raw_vec(rows: usize, cols: usize, elems: Vec<T>) -> Result<Self, ()> {
         if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
@@ -61,9 +98,6 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     pub fn take_raw_vec(self) -> Vec<T> {
         self.buf
     }
-
-    // TODO: Impl row-major constructor
-    // TODO: Impl col-major constructor
 
     pub fn rows(&self) -> usize {
         self.rows

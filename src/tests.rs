@@ -45,6 +45,25 @@ fn gen_filled_invalid<B: BlockDim>() {
     }
 }
 
+fn gen_from_row_major<B: BlockDim>() {
+    let (rows, cols) = (5 * B::WIDTH, 3 * B::WIDTH);
+    let data: Vec<_> = (0..(rows * cols)).collect();
+    let grid = BG::<_, B>::from_row_major(rows, cols, &data).unwrap();
+    for i in 0..rows {
+        for j in 0..cols {
+            assert_eq!(grid[(i, j)], data[cols * i + j]);
+        }
+    }
+}
+
+fn gen_from_row_major_invalid<B: BlockDim>() {
+    for &(rows, cols) in BAD_SIZES {
+        let data: Vec<_> = (0..(rows * cols)).collect();
+        let grid = BG::<_, B>::from_row_major(rows, cols, &data);
+        assert!(grid.is_err());
+    }
+}
+
 fn gen_get_and_get_mut<B: BlockDim>() {
     let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
     let mut grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
@@ -96,7 +115,7 @@ fn gen_block_iter<B: BlockDim>() {
         assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
 
         bj += B::WIDTH;
-        if bj == grid.cols() {
+        if bj == cols {
             bi += B::WIDTH;
             bj = 0;
         }
@@ -129,7 +148,7 @@ fn gen_block_iter_mut<B: BlockDim>() {
             }
         }
         bj += B::WIDTH;
-        if bj == grid.cols() {
+        if bj == cols {
             bi += B::WIDTH;
             bj = 0;
         }
@@ -203,6 +222,16 @@ fn test_filled() {
 #[test]
 fn test_filled_invalid() {
     test_for!(gen_filled_invalid; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_from_row_major() {
+    test_for!(gen_from_row_major; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_from_row_major_invalid() {
+    test_for!(gen_from_row_major_invalid; U2, U4, U8, U16, U32);
 }
 
 #[test]
