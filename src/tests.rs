@@ -97,8 +97,41 @@ fn gen_block_iter<B: BlockDim>() {
 
         bj += B::WIDTH;
         if bj == grid.cols() {
-            bj = 0;
             bi += B::WIDTH;
+            bj = 0;
+        }
+    }
+}
+
+fn gen_block_iter_mut<B: BlockDim>() {
+    let (rows, cols) = (3 * B::WIDTH, 2 * B::WIDTH);
+    let mut grid = BG::<_, B>::filled(rows, cols, 7usize).unwrap();
+    assert_eq!(grid.block_iter_mut().count(), grid.blocks());
+
+    for (b_ind, mut block) in grid.block_iter_mut().enumerate() {
+        for si in 0..B::WIDTH {
+            for sj in 0..B::WIDTH {
+                assert_eq!(block[(si, sj)], 7);
+                block[(si, sj)] = b_ind * B::AREA + si * B::WIDTH + sj;
+            }
+        }
+        assert!(block.get((B::WIDTH, B::WIDTH - 1)).is_none());
+        assert!(block.get((B::WIDTH - 1, B::WIDTH)).is_none());
+        assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
+    }
+
+    let (mut bi, mut bj): Coords = (0, 0);
+    for (b_ind, block) in grid.block_iter().enumerate() {
+        for si in 0..B::WIDTH {
+            for sj in 0..B::WIDTH {
+                assert_eq!(block[(si, sj)], grid[(bi + si, bj + sj)]);
+                assert_eq!(block[(si, sj)], b_ind * B::AREA + si * B::WIDTH + sj);
+            }
+        }
+        bj += B::WIDTH;
+        if bj == grid.cols() {
+            bi += B::WIDTH;
+            bj = 0;
         }
     }
 }
@@ -122,7 +155,7 @@ fn gen_row_major_iter<B: BlockDim>() {
 
 fn gen_row_major_iter_mut<B: BlockDim>() {
     let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
-    let mut grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
+    let mut grid = BG::<_, B>::filled(rows, cols, 7usize).unwrap();
     assert_eq!(grid.row_major_iter_mut().count(), grid.size());
     // Mutate while iterating
     let mut it = grid.row_major_iter_mut();
@@ -185,6 +218,11 @@ fn test_block_size() {
 #[test]
 fn test_block_iter() {
     test_for!(gen_block_iter; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_block_iter_mut() {
+    test_for!(gen_block_iter_mut; U2, U4, U8, U16, U32);
 }
 
 #[test]
