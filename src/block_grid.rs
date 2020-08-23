@@ -1,14 +1,14 @@
-use crate::iters::{BlockIter, BlockIterMut, RowMajorIter, RowMajorIterMut};
-use crate::{BlockDim, Coords};
-
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
+
+use crate::iters::{BlockIter, BlockIterMut, RowMajorIter, RowMajorIterMut};
+use crate::{BlockDim, Coords};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct BlockGrid<T, B: BlockDim> {
     rows: usize,
     cols: usize,
-    pub(crate) buf: Vec<T>,
+    buf: Vec<T>,
     _phantom: PhantomData<B>,
 }
 
@@ -23,88 +23,6 @@ pub struct SubBlock<'a, T, B: BlockDim> {
 pub struct SubBlockMut<'a, T, B: BlockDim> {
     pub(crate) block_coords: Coords,
     pub(crate) grid: &'a mut BlockGrid<T, B>,
-}
-
-impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
-    pub fn filled(rows: usize, cols: usize, elem: T) -> Result<Self, ()> {
-        if !Self::valid_size(rows, cols) {
-            return Err(());
-        }
-        Ok(Self {
-            rows,
-            cols,
-            buf: vec![elem; rows * cols],
-            _phantom: PhantomData,
-        })
-    }
-}
-
-impl<T: Clone + Default, B: BlockDim> BlockGrid<T, B> {
-    pub fn new(rows: usize, cols: usize) -> Result<Self, ()> {
-        Self::filled(rows, cols, T::default())
-    }
-}
-
-impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
-    pub fn from_row_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
-        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
-            return Err(());
-        }
-        let mut grid = Self {
-            rows,
-            cols,
-            buf: Vec::with_capacity(rows * cols),
-            _phantom: PhantomData,
-        };
-        // Iterate in memory order by index and pull values from row-major.
-        // Yeah, this is kinda eh...
-        for bi in (0..grid.rows()).step_by(B::WIDTH) {
-            for bj in (0..grid.cols()).step_by(B::WIDTH) {
-                for si in 0..B::WIDTH {
-                    for sj in 0..B::WIDTH {
-                        let (row, col) = (bi + si, bj + sj);
-                        let row_maj_ind = grid.cols() * row + col;
-                        // There's no 'simple' way to do this without `Clone`,
-                        // because the row-major `elems` can't be easily drained
-                        // out of order.
-                        // TODO: A possible, but reallyy unsafe method could be
-                        //       to memcpy elements out of `Vec`, and then don't
-                        //       drop them the `Vec` is dropped. Investigate.
-                        grid.buf.push(elems[row_maj_ind].clone());
-                    }
-                }
-            }
-        }
-        assert_eq!(grid.buf.len(), grid.rows() * grid.cols());
-        Ok(grid)
-    }
-
-    pub fn from_col_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
-        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
-            return Err(());
-        }
-        let mut grid = Self {
-            rows,
-            cols,
-            buf: Vec::with_capacity(rows * cols),
-            _phantom: PhantomData,
-        };
-        // Iterate in memory order by index and pull values from col-major
-        // Yeah, this too is kinda eh...
-        for bi in (0..grid.rows()).step_by(B::WIDTH) {
-            for bj in (0..grid.cols()).step_by(B::WIDTH) {
-                for si in 0..B::WIDTH {
-                    for sj in 0..B::WIDTH {
-                        let (row, col) = (bi + si, bj + sj);
-                        let col_maj_ind = grid.rows() * col + row;
-                        grid.buf.push(elems[col_maj_ind].clone());
-                    }
-                }
-            }
-        }
-        assert_eq!(grid.buf.len(), grid.rows() * grid.cols());
-        Ok(grid)
-    }
 }
 
 impl<T, B: BlockDim> BlockGrid<T, B> {
@@ -219,8 +137,6 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         }
     }
 
-    // TODO: More iterators
-
     fn valid_size(rows: usize, cols: usize) -> bool {
         rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
     }
@@ -249,6 +165,86 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     fn calc_offset(&self, (row, col): Coords) -> Coords {
         (row & B::MASK, col & B::MASK)
+    }
+}
+
+impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
+    pub fn filled(rows: usize, cols: usize, elem: T) -> Result<Self, ()> {
+        if !Self::valid_size(rows, cols) {
+            return Err(());
+        }
+        Ok(Self {
+            rows,
+            cols,
+            buf: vec![elem; rows * cols],
+            _phantom: PhantomData,
+        })
+    }
+
+    pub fn from_row_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
+        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
+            return Err(());
+        }
+        let mut grid = Self {
+            rows,
+            cols,
+            buf: Vec::with_capacity(rows * cols),
+            _phantom: PhantomData,
+        };
+        // Iterate in memory order by index and pull values from row-major.
+        // Yeah, this is kinda eh...
+        for bi in (0..grid.rows()).step_by(B::WIDTH) {
+            for bj in (0..grid.cols()).step_by(B::WIDTH) {
+                for si in 0..B::WIDTH {
+                    for sj in 0..B::WIDTH {
+                        let (row, col) = (bi + si, bj + sj);
+                        let row_maj_ind = grid.cols() * row + col;
+                        // There's no 'simple' way to do this without `Clone`,
+                        // because the row-major `elems` can't be easily drained
+                        // out of order.
+                        // TODO: A possible, but reallyy unsafe method could be
+                        //       to memcpy elements out of `Vec`, and then don't
+                        //       drop them the `Vec` is dropped. Investigate.
+                        grid.buf.push(elems[row_maj_ind].clone());
+                    }
+                }
+            }
+        }
+        assert_eq!(grid.buf.len(), grid.rows() * grid.cols());
+        Ok(grid)
+    }
+
+    pub fn from_col_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
+        if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
+            return Err(());
+        }
+        let mut grid = Self {
+            rows,
+            cols,
+            buf: Vec::with_capacity(rows * cols),
+            _phantom: PhantomData,
+        };
+        // Iterate in memory order by index and pull values from col-major
+        // Yeah, this too is kinda eh...
+        for bi in (0..grid.rows()).step_by(B::WIDTH) {
+            for bj in (0..grid.cols()).step_by(B::WIDTH) {
+                for si in 0..B::WIDTH {
+                    for sj in 0..B::WIDTH {
+                        let (row, col) = (bi + si, bj + sj);
+                        let col_maj_ind = grid.rows() * col + row;
+                        grid.buf.push(elems[col_maj_ind].clone());
+                    }
+                }
+            }
+        }
+        assert_eq!(grid.buf.len(), grid.rows() * grid.cols());
+        Ok(grid)
+    }
+}
+
+impl<T: Clone + Default, B: BlockDim> BlockGrid<T, B> {
+    pub fn new(rows: usize, cols: usize) -> Result<Self, ()> {
+        Self::filled(rows, cols, T::default())
     }
 }
 
