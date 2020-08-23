@@ -2,8 +2,6 @@ extern crate array2d;
 extern crate block_grid;
 extern crate fastrand;
 
-use std::convert::{From, Into};
-use std::marker::Sized;
 use std::ops::{Index, IndexMut};
 
 use array2d::Array2D;
@@ -11,8 +9,7 @@ use block_grid::{BlockDim, BlockGrid, BlockWidth::*, Coords};
 
 fn blur_by_index<T>(rows: usize, cols: usize, img: &T, out: &mut T)
 where
-    T: Index<Coords> + IndexMut<Coords>,
-    <T as Index<Coords>>::Output: Copy + Into<u8> + From<u8> + Sized,
+    T: Index<Coords, Output = u8> + IndexMut<Coords>,
 {
     assert!(rows >= 3 && cols >= 3);
     // Copy perimeter
@@ -40,18 +37,18 @@ where
                 (i + 1, j + 1),
             ]
             .iter()
-            .map(|&(ni, nj)| img[(ni, nj)].into() as u32)
+            .map(|&(ni, nj)| img[(ni, nj)] as u32)
             .sum();
-            out[(i, j)] = ((tot / 9) as u8).into();
+            out[(i, j)] = (tot / 9) as u8;
         }
     }
 }
 
-fn generic_test_blur_by_index<B: BlockDim>(rows: usize, cols: usize) {
+fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
     let mut in_bg = BlockGrid::<u8, B>::new(rows, cols).unwrap();
     let mut out_bg = in_bg.clone();
 
-    let mut in_ar = Array2D::filled_with(0, rows, cols);
+    let mut in_ar = Array2D::filled_with(0u8, rows, cols);
     let mut out_ar = in_ar.clone();
 
     fastrand::seed(1234);
@@ -74,26 +71,26 @@ fn generic_test_blur_by_index<B: BlockDim>(rows: usize, cols: usize) {
 }
 
 #[test]
-fn test_blur_by_index_2() {
-    generic_test_blur_by_index::<U2>(100, 100);
+fn test_blur_by_index_u2() {
+    generic_test_blur::<U2>(30, 30);
 }
 
 #[test]
-fn test_blur_by_index_4() {
-    generic_test_blur_by_index::<U4>(4, 12);
+fn test_blur_by_index_u4() {
+    generic_test_blur::<U4>(4, 12);
 }
 
 #[test]
-fn test_blur_by_index_8() {
-    generic_test_blur_by_index::<U8>(128, 512);
+fn test_blur_by_index_u8() {
+    generic_test_blur::<U8>(64, 256);
 }
 
 #[test]
-fn test_blur_by_index_16() {
-    generic_test_blur_by_index::<U16>(16, 16);
+fn test_blur_by_index_u16() {
+    generic_test_blur::<U16>(16, 16);
 }
 
 #[test]
-fn test_blur_by_index_32() {
-    generic_test_blur_by_index::<U32>(96, 224);
+fn test_blur_by_index_u32() {
+    generic_test_blur::<U32>(96, 224);
 }
