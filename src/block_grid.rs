@@ -270,11 +270,15 @@ impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
 }
 
 impl<'a, T, B: BlockDim> SubBlock<'a, T, B> {
-    pub fn get(&self, (row, col): Coords) -> Option<&T> {
-        if row >= B::WIDTH || col >= B::WIDTH {
+    pub fn contains(&self, (row, col): Coords) -> bool {
+        row < B::WIDTH && col < B::WIDTH
+    }
+
+    pub fn get(&self, coords: Coords) -> Option<&T> {
+        if !self.contains(coords) {
             return None;
         }
-        self.grid.get(self.calc_coords((row, col)))
+        self.grid.get(self.calc_coords(coords))
     }
 
     // TODO: Document unsafety
@@ -301,18 +305,22 @@ impl<'a, T, B: BlockDim> Index<Coords> for SubBlock<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> SubBlockMut<'a, T, B> {
-    pub fn get(&self, (row, col): Coords) -> Option<&T> {
-        if row >= B::WIDTH || col >= B::WIDTH {
-            return None;
-        }
-        self.grid.get(self.calc_coords((row, col)))
+    pub fn contains(&self, (row, col): Coords) -> bool {
+        row < B::WIDTH && col < B::WIDTH
     }
 
-    pub fn get_mut(&mut self, (row, col): Coords) -> Option<&mut T> {
-        if row >= B::WIDTH || col >= B::WIDTH {
+    pub fn get(&self, coords: Coords) -> Option<&T> {
+        if !self.contains(coords) {
             return None;
         }
-        self.grid.get_mut(self.calc_coords((row, col)))
+        self.grid.get(self.calc_coords(coords))
+    }
+
+    pub fn get_mut(&mut self, coords: Coords) -> Option<&mut T> {
+        if !self.contains(coords) {
+            return None;
+        }
+        self.grid.get_mut(self.calc_coords(coords))
     }
 
     #[allow(clippy::missing_safety_doc)]
