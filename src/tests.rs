@@ -100,6 +100,19 @@ fn gen_block_size<B: BlockDim>() {
     }
 }
 
+fn gen_contains<B: BlockDim>() {
+    for &(n, m) in &[(1, 1), (3, 2), (4, 1), (5, 5)] {
+        let (rows, cols) = (n * B::WIDTH, m * B::WIDTH);
+        let grid = BG::<usize, B>::new(rows, cols).unwrap();
+        assert!(grid.contains((0, 0)));
+        assert!(grid.contains((0, cols - 1)));
+        assert!(grid.contains((rows - 1, 0)));
+        assert!(!grid.contains((0, cols)));
+        assert!(!grid.contains((rows, 0)));
+        assert!(!grid.contains((rows, cols)));
+    }
+}
+
 fn gen_block_iter<B: BlockDim>() {
     let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
     let data: Vec<_> = (0..(rows * cols)).collect();
@@ -240,6 +253,11 @@ fn test_get_and_get_mut() {
 #[test]
 fn test_block_size() {
     test_for!(gen_block_size; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_contains() {
+    test_for!(gen_contains; U2, U4, U8, U16, U32);
 }
 
 #[test]
