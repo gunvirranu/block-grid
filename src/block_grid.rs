@@ -14,13 +14,13 @@ pub struct BlockGrid<T, B: BlockDim> {
 
 // TODO: Figure out how `PartialEq`/`Eq` should work
 #[derive(Debug)]
-pub struct SubBlock<'a, T, B: BlockDim> {
+pub struct Block<'a, T, B: BlockDim> {
     pub(crate) block_coords: Coords,
     pub(crate) grid: &'a BlockGrid<T, B>,
 }
 
 #[derive(Debug)]
-pub struct SubBlockMut<'a, T, B: BlockDim> {
+pub struct BlockMut<'a, T, B: BlockDim> {
     pub(crate) block_coords: Coords,
     pub(crate) grid: &'a mut BlockGrid<T, B>,
 }
@@ -269,7 +269,7 @@ impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> SubBlock<'a, T, B> {
+impl<'a, T, B: BlockDim> Block<'a, T, B> {
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
@@ -293,7 +293,7 @@ impl<'a, T, B: BlockDim> SubBlock<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> Index<Coords> for SubBlock<'a, T, B> {
+impl<'a, T, B: BlockDim> Index<Coords> for Block<'a, T, B> {
     type Output = T;
 
     fn index(&self, coords: Coords) -> &Self::Output {
@@ -304,7 +304,7 @@ impl<'a, T, B: BlockDim> Index<Coords> for SubBlock<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> SubBlockMut<'a, T, B> {
+impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
@@ -339,7 +339,7 @@ impl<'a, T, B: BlockDim> SubBlockMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> Index<Coords> for SubBlockMut<'a, T, B> {
+impl<'a, T, B: BlockDim> Index<Coords> for BlockMut<'a, T, B> {
     type Output = T;
 
     fn index(&self, coords: Coords) -> &Self::Output {
@@ -350,7 +350,7 @@ impl<'a, T, B: BlockDim> Index<Coords> for SubBlockMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> IndexMut<Coords> for SubBlockMut<'a, T, B> {
+impl<'a, T, B: BlockDim> IndexMut<Coords> for BlockMut<'a, T, B> {
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
         match self.get_mut(coords) {
             Some(x) => x,

@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 
-use crate::{BlockDim, BlockGrid, Coords, SubBlock, SubBlockMut};
+use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
 
 pub struct BlockIter<'a, T, B: BlockDim> {
     pub(crate) block_coords: Coords,
@@ -26,13 +26,13 @@ pub struct RowMajorIterMut<'a, T, B: BlockDim> {
 }
 
 impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
-    type Item = SubBlock<'a, T, B>;
+    type Item = Block<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.block_coords.0 >= self.grid.row_blocks() {
             return None;
         }
-        let block = SubBlock {
+        let block = Block {
             block_coords: self.block_coords,
             grid: self.grid,
         };
@@ -45,7 +45,7 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
-    type Item = SubBlockMut<'a, T, B>;
+    type Item = BlockMut<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // SAFETY: `self.grid` is a valid pointer
@@ -56,7 +56,7 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
         if self.block_coords.0 >= row_blocks {
             return None;
         }
-        let block = SubBlockMut {
+        let block = BlockMut {
             block_coords: self.block_coords,
             // SAFETY: `self.grid` is a valid mutable pointer
             grid: unsafe { &mut *self.grid.as_ptr() },
