@@ -2,7 +2,7 @@ extern crate block_grid;
 extern crate criterion;
 
 use block_grid::{BlockWidth::*, *};
-use criterion::{criterion_group, criterion_main, Bencher, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Bencher, Criterion};
 
 fn constructors(c: &mut Criterion) {
     const DIMS: Coords = (128, 256);
@@ -33,5 +33,53 @@ fn constructors(c: &mut Criterion) {
     g.finish();
 }
 
-criterion_group!(bench, constructors);
+fn indexing(c: &mut Criterion) {
+    type B = U4;
+    const DIMS: Coords = (128, 32);
+    let data: Vec<_> = (0..(DIMS.0 * DIMS.1)).map(|x| x as u8).collect();
+    let grid = BlockGrid::<_, B>::from_raw_vec(DIMS.0, DIMS.1, data).unwrap();
+
+    let mut g = c.benchmark_group("Indexing");
+    g.bench_function("index_row_major", |b| {
+        b.iter(|| {
+            for i in 0..grid.rows() {
+                for j in 0..grid.cols() {
+                    black_box(grid[(i, j)]);
+                }
+            }
+        })
+    });
+
+    g.bench_function("index_mem_order", |b| {
+        b.iter(|| {
+            for bi in 0..grid.row_blocks() {
+                for bj in 0..grid.col_blocks() {
+                    for si in 0..B::WIDTH {
+                        for sj in 0..B::WIDTH {
+                            let (i, j) = (B::WIDTH * bi + si, B::WIDTH * bj + sj);
+                            black_box(grid[(i, j)]);
+                        }
+                    }
+                }
+            }
+        })
+    });
+
+    g.bench_function("get_unchecked_mem_order", |b| {
+        b.iter(|| {
+            for bi in 0..grid.row_blocks() {
+                for bj in 0..grid.col_blocks() {
+                    for si in 0..B::WIDTH {
+                        for sj in 0..B::WIDTH {
+                            let (i, j) = (B::WIDTH * bi + si, B::WIDTH * bj + sj);
+                            black_box(unsafe { grid.get_unchecked((i, j)) });
+                        }
+                    }
+                }
+            }
+        })
+    });
+}
+
+criterion_group!(bench, constructors, indexing);
 criterion_main!(bench);
