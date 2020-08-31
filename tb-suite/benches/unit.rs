@@ -1,43 +1,44 @@
 extern crate block_grid;
 extern crate criterion;
 
-use block_grid::{BlockWidth::*, *};
+use block_grid::*;
 use criterion::{black_box, criterion_group, criterion_main, Bencher, Criterion};
 
+type T = u8;
+type B = BlockWidth::U8;
+
+const ROWS: usize = 128;
+const COLS: usize = 256;
+
+fn gen_data(len: usize) -> Vec<T> {
+    (0..len).map(|x| x as T).collect()
+}
+
 fn constructors(c: &mut Criterion) {
-    const DIMS: Coords = (128, 256);
-
-    fn gen_data_u8(len: usize) -> Vec<u8> {
-        (0..len).map(|x| x as u8).collect()
-    }
-
-    fn bench_from_row_major<B: BlockDim>() -> impl Fn(&mut Bencher, &Coords) {
+    // NOTE: These will NOT fail if the constructor gives an `Err`, so make sure
+    //       that they return a valid value. Perf. will show a huge increase.
+    fn bench_from_row_major() -> impl Fn(&mut Bencher, &Coords) {
         |b, &(rows, cols)| {
-            assert!(rows % B::WIDTH == 0 && cols % B::WIDTH == 0);
-            let data = gen_data_u8(rows * cols);
+            let data = gen_data(rows * cols);
             b.iter_with_large_drop(|| BlockGrid::<_, B>::from_row_major(rows, cols, &data))
         }
     }
     let mut g = c.benchmark_group("Constructors");
-    g.bench_with_input("from_row_major<U2>", &DIMS, bench_from_row_major::<U2>());
-    g.bench_with_input("from_row_major<U8>", &DIMS, bench_from_row_major::<U8>());
+    g.bench_with_input("from_row_major", &(ROWS, COLS), bench_from_row_major());
 
-    fn bench_from_col_major<B: BlockDim>() -> impl Fn(&mut Bencher, &Coords) {
+    fn bench_from_col_major() -> impl Fn(&mut Bencher, &Coords) {
         |b, &(rows, cols)| {
-            let data = gen_data_u8(rows * cols);
+            let data = gen_data(rows * cols);
             b.iter_with_large_drop(|| BlockGrid::<_, B>::from_col_major(rows, cols, &data))
         }
     }
-    g.bench_with_input("from_col_major<U2>", &DIMS, bench_from_col_major::<U2>());
-    g.bench_with_input("from_col_major<U8>", &DIMS, bench_from_col_major::<U8>());
+    g.bench_with_input("from_col_major", &(ROWS, COLS), bench_from_col_major());
     g.finish();
 }
 
 fn indexing(c: &mut Criterion) {
-    type B = U4;
-    const DIMS: Coords = (128, 32);
-    let data: Vec<_> = (0..(DIMS.0 * DIMS.1)).map(|x| x as u8).collect();
-    let grid = BlockGrid::<_, B>::from_raw_vec(DIMS.0, DIMS.1, data).unwrap();
+    let data: Vec<_> = gen_data(ROWS * COLS);
+    let grid = BlockGrid::<_, B>::from_raw_vec(ROWS, COLS, data).unwrap();
 
     let mut g = c.benchmark_group("Indexing");
     g.bench_function("index_row_major", |b| {
@@ -82,10 +83,8 @@ fn indexing(c: &mut Criterion) {
 }
 
 fn iterators(c: &mut Criterion) {
-    type B = U4;
-    const DIMS: Coords = (128, 64);
-    let data: Vec<_> = (0..(DIMS.0 * DIMS.1)).map(|x| x as u32).collect();
-    let grid = BlockGrid::<_, B>::from_raw_vec(DIMS.0, DIMS.1, data).unwrap();
+    let data: Vec<_> = gen_data(ROWS * COLS);
+    let grid = BlockGrid::<_, B>::from_raw_vec(ROWS, COLS, data).unwrap();
 
     let mut g = c.benchmark_group("Iterators");
     g.bench_function("each_iter", |b| {
