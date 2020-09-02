@@ -80,6 +80,7 @@ fn indexing(c: &mut Criterion) {
             }
         })
     });
+    g.finish();
 }
 
 fn iterators(c: &mut Criterion) {
@@ -126,6 +127,7 @@ fn iterators(c: &mut Criterion) {
             }
         })
     });
+    g.finish();
 }
 
 criterion_group!(bench, constructors, indexing, iterators);
