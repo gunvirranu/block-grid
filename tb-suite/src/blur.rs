@@ -2,9 +2,9 @@ extern crate block_grid;
 
 use std::ops::{Index, IndexMut};
 
-pub fn blur_by_index<T>(rows: usize, cols: usize, img: &T, out: &mut T)
+pub fn blur_by_index<G>(rows: usize, cols: usize, img: &G, out: &mut G)
 where
-    T: Index<(usize, usize), Output = u8> + IndexMut<(usize, usize)>,
+    G: Index<(usize, usize), Output = u8> + IndexMut<(usize, usize)>,
 {
     assert!(rows >= 3 && cols >= 3);
     // Copy perimeter

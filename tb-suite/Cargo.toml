@@ -17,3 +17,7 @@ fastrand = "1.3.3"
 [[bench]]
 name = "unit"
 harness = false
+
+[[bench]]
+name = "blur"
+harness = false
