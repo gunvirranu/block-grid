@@ -33,9 +33,43 @@ fn gen_test_index<B: BlockDim>(rows: usize, cols: usize) {
     }
 }
 
+fn gen_test_idiomatic<B: BlockDim>(rows: usize, cols: usize) {
+    let mut in_index = BlockGrid::<u8, B>::new(rows, cols).unwrap();
+    let mut out_index = in_index.clone();
+
+    let mut in_ar = Array2D::filled_with(0u8, rows, cols);
+    let mut out_ar = in_ar.clone();
+
+    fastrand::seed(1234);
+    for i in 0..rows {
+        for j in 0..cols {
+            let x = fastrand::u8(..);
+            in_index[(i, j)] = x;
+            in_ar[(i, j)] = x;
+        }
+    }
+
+    blur_by_index(rows, cols, &in_index, &mut out_index);
+    blur_array2d(&in_ar, &mut out_ar);
+
+    for i in 0..rows {
+        for j in 0..cols {
+            let x = out_index[(i, j)];
+            assert_eq!(out_ar[(i, j)], x);
+        }
+    }
+}
+
 #[test]
 fn test_blur_by_index() {
     gen_test_index::<U2>(30, 30);
     gen_test_index::<U8>(16, 40);
     gen_test_index::<U32>(96, 64);
+}
+
+#[test]
+fn test_blur_idiomatic() {
+    gen_test_idiomatic::<U2>(30, 30);
+    gen_test_idiomatic::<U8>(16, 40);
+    gen_test_idiomatic::<U32>(96, 64);
 }
