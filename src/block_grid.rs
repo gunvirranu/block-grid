@@ -88,6 +88,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     // TODO: Document unsafety
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
+        debug_assert!(self.contains(coords));
         let ind = self.calc_index(coords);
         self.buf.get_unchecked(ind)
     }
@@ -95,6 +96,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     // TODO: Document unsafety
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
+        debug_assert!(self.contains(coords), "Index out of bounds");
         let ind = self.calc_index(coords);
         self.buf.get_unchecked_mut(ind)
     }
