@@ -9,7 +9,7 @@ use block_grid::{BlockDim, BlockGrid, BlockWidth::*};
 use tb_suite::blur::*;
 use toodee::TooDee;
 
-fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
+fn gen_test_index<B: BlockDim>(rows: usize, cols: usize) {
     let mut in_bg = BlockGrid::<u8, B>::new(rows, cols).unwrap();
     let mut out_bg = in_bg.clone();
 
@@ -42,27 +42,43 @@ fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
     }
 }
 
-#[test]
-fn test_blur_by_index_u2() {
-    generic_test_blur::<U2>(30, 30);
+fn gen_test_idiomatic<B: BlockDim>(rows: usize, cols: usize) {
+    let mut in_bg = BlockGrid::<u8, B>::new(rows, cols).unwrap();
+    let mut out_index = in_bg.clone();
+
+    let mut in_td = TooDee::<u8>::new(cols, rows);
+    let mut out_td = in_td.clone();
+
+    fastrand::seed(1234);
+    for i in 0..rows {
+        for j in 0..cols {
+            let x = fastrand::u8(..);
+            in_bg[(i, j)] = x;
+            in_td[(j, i)] = x;
+        }
+    }
+
+    blur_by_index(rows, cols, &in_bg, &mut out_index);
+    blur_toodee(&in_td, &mut out_td);
+
+    for i in 0..rows {
+        for j in 0..cols {
+            let x = out_index[(i, j)];
+            assert_eq!(out_td[(j, i)], x);
+        }
+    }
 }
 
 #[test]
-fn test_blur_by_index_u4() {
-    generic_test_blur::<U4>(4, 12);
+fn test_blur_by_index() {
+    gen_test_index::<U2>(30, 30);
+    gen_test_index::<U8>(16, 40);
+    gen_test_index::<U32>(96, 64);
 }
 
 #[test]
-fn test_blur_by_index_u8() {
-    generic_test_blur::<U8>(32, 128);
-}
-
-#[test]
-fn test_blur_by_index_u16() {
-    generic_test_blur::<U16>(16, 16);
-}
-
-#[test]
-fn test_blur_by_index_u32() {
-    generic_test_blur::<U32>(96, 64);
+fn test_blur_idiomatic() {
+    gen_test_idiomatic::<U2>(30, 30);
+    gen_test_idiomatic::<U8>(16, 40);
+    gen_test_idiomatic::<U32>(96, 64);
 }
