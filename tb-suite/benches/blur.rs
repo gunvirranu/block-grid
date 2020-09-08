@@ -42,6 +42,16 @@ fn bench_blur(c: &mut Criterion) {
         );
     });
 
+    g.bench_function("block_grid_idiomatic", |b| {
+        b.iter_batched_ref(
+            || out_bg.clone(),
+            |out_grid| {
+                blur_blockgrid(&in_bg, out_grid);
+            },
+            BatchSize::SmallInput,
+        );
+    });
+
     g.bench_function("array2d_index", |b| {
         b.iter_batched_ref(
             || out_ar.clone(),
