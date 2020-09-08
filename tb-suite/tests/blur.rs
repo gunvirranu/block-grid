@@ -2,12 +2,10 @@ extern crate array2d;
 extern crate block_grid;
 extern crate fastrand;
 extern crate tb_suite;
-extern crate toodee;
 
 use array2d::Array2D;
 use block_grid::{BlockDim, BlockGrid, BlockWidth::*};
 use tb_suite::blur::*;
-use toodee::TooDee;
 
 fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
     let mut in_bg = BlockGrid::<u8, B>::new(rows, cols).unwrap();
@@ -16,28 +14,21 @@ fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
     let mut in_ar = Array2D::filled_with(0u8, rows, cols);
     let mut out_ar = in_ar.clone();
 
-    let mut in_td = TooDee::<u8>::new(rows, cols);
-    let mut out_td = in_td.clone();
-
     fastrand::seed(1234);
     for i in 0..rows {
         for j in 0..cols {
             let x = fastrand::u8(..);
             in_bg[(i, j)] = x;
             in_ar[(i, j)] = x;
-            in_td[(i, j)] = x;
         }
     }
 
     blur_by_index(rows, cols, &in_bg, &mut out_bg);
     blur_by_index(rows, cols, &in_ar, &mut out_ar);
-    blur_by_index(rows, cols, &in_td, &mut out_td);
 
     for i in 0..rows {
         for j in 0..cols {
-            let x = out_bg[(i, j)];
-            assert_eq!(out_ar[(i, j)], x);
-            assert_eq!(out_td[(i, j)], x);
+            assert_eq!(out_bg[(i, j)], out_ar[(i, j)]);
         }
     }
 }

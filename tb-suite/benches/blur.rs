@@ -3,13 +3,11 @@ extern crate block_grid;
 extern crate criterion;
 extern crate fastrand;
 extern crate tb_suite;
-extern crate toodee;
 
 use array2d::Array2D;
 use block_grid::{BlockGrid, BlockWidth};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 use tb_suite::blur::*;
-use toodee::TooDee;
 
 type B = BlockWidth::U8;
 
@@ -23,9 +21,6 @@ fn bench_blur(c: &mut Criterion) {
     let mut in_ar = Array2D::filled_with(0u8, ROWS, COLS);
     let out_ar = in_ar.clone();
 
-    let mut in_td = TooDee::<u8>::new(ROWS, COLS);
-    let out_td = in_td.clone();
-
     // Generate input data
     fastrand::seed(1234);
     for i in 0..ROWS {
@@ -33,7 +28,6 @@ fn bench_blur(c: &mut Criterion) {
             let x = fastrand::u8(..);
             in_bg[(i, j)] = x;
             in_ar[(i, j)] = x;
-            in_td[(i, j)] = x;
         }
     }
 
@@ -53,16 +47,6 @@ fn bench_blur(c: &mut Criterion) {
             || out_ar.clone(),
             |out_grid| {
                 blur_by_index(ROWS, COLS, &in_ar, out_grid);
-            },
-            BatchSize::SmallInput,
-        );
-    });
-
-    g.bench_function("toodee_index", |b| {
-        b.iter_batched_ref(
-            || out_td.clone(),
-            |out_grid| {
-                blur_by_index(ROWS, COLS, &in_td, out_grid);
             },
             BatchSize::SmallInput,
         );
