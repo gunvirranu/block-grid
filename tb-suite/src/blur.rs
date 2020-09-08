@@ -1,12 +1,15 @@
-extern crate block_grid;
+extern crate toodee;
 
 use std::ops::{Index, IndexMut};
+
+use toodee::{TooDee, TooDeeOps, TooDeeOpsMut};
 
 pub fn blur_by_index<G>(rows: usize, cols: usize, img: &G, out: &mut G)
 where
     G: Index<(usize, usize), Output = u8> + IndexMut<(usize, usize)>,
 {
-    assert!(rows >= 3 && cols >= 3);
+    debug_assert!(rows >= 3 && cols >= 3);
+
     // Copy perimeter
     for i in 0..rows {
         out[(i, 0)] = img[(i, 0)];
@@ -16,7 +19,8 @@ where
         out[(0, j)] = img[(0, j)];
         out[(rows - 1, j)] = img[(rows - 1, j)];
     }
-    // Iterate over each pixel
+
+    // Iterate over each inner pixel
     for i in 1..(rows - 1) {
         for j in 1..(cols - 1) {
             // Set each pixel to average of 3x3 kernel
@@ -35,6 +39,44 @@ where
             .map(|&(ni, nj)| img[(ni, nj)] as u32)
             .sum();
             out[(i, j)] = (tot / 9) as u8;
+        }
+    }
+}
+
+pub fn blur_toodee(img: &TooDee<u8>, out: &mut TooDee<u8>) {
+    debug_assert_eq!(img.num_rows(), out.num_rows());
+    debug_assert_eq!(img.num_cols(), out.num_cols());
+    let (rows, cols) = (img.num_rows(), img.num_cols());
+    debug_assert!(rows >= 3 && cols >= 3);
+
+    // Copy perimeter
+    img.col(0).zip(out.col_mut(0)).for_each(|(&x, y)| *y = x);
+    (img.col(cols - 1).zip(out.col_mut(cols - 1))).for_each(|(&x, y)| *y = x);
+    (img.rows().next().unwrap().iter())
+        .zip(out.rows_mut().next().unwrap())
+        .for_each(|(&x, y)| *y = x);
+    (img.rows().last().unwrap().iter())
+        .zip(out.rows_mut().last().unwrap())
+        .for_each(|(&x, y)| *y = x);
+
+    // Iterate over each inner pixel
+    for i in 1..(rows - 1) {
+        for j in 1..(cols - 1) {
+            let tot: u32 = [
+                (i - 1, j - 1),
+                (i - 1, j),
+                (i - 1, j + 1),
+                (i, j - 1),
+                (i, j),
+                (i, j + 1),
+                (i + 1, j - 1),
+                (i + 1, j),
+                (i + 1, j + 1),
+            ]
+            .iter()
+            .map(|&(ni, nj)| img[(nj, ni)] as u32)
+            .sum();
+            out[(j, i)] = (tot / 9) as u8;
         }
     }
 }
