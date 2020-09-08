@@ -51,6 +51,16 @@ fn bench_blur(c: &mut Criterion) {
             BatchSize::SmallInput,
         );
     });
+
+    g.bench_function("array2d_idiomatic", |b| {
+        b.iter_batched_ref(
+            || out_ar.clone(),
+            |out_grid| {
+                blur_array2d(&in_ar, out_grid);
+            },
+            BatchSize::SmallInput,
+        );
+    });
     g.finish()
 }
 
