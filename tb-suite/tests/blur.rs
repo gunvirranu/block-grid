@@ -7,7 +7,7 @@ use array2d::Array2D;
 use block_grid::{BlockDim, BlockGrid, BlockWidth::*};
 use tb_suite::blur::*;
 
-fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
+fn gen_test_index<B: BlockDim>(rows: usize, cols: usize) {
     let mut in_bg = BlockGrid::<u8, B>::new(rows, cols).unwrap();
     let mut out_bg = in_bg.clone();
 
@@ -34,26 +34,8 @@ fn generic_test_blur<B: BlockDim>(rows: usize, cols: usize) {
 }
 
 #[test]
-fn test_blur_by_index_u2() {
-    generic_test_blur::<U2>(30, 30);
-}
-
-#[test]
-fn test_blur_by_index_u4() {
-    generic_test_blur::<U4>(4, 12);
-}
-
-#[test]
-fn test_blur_by_index_u8() {
-    generic_test_blur::<U8>(32, 128);
-}
-
-#[test]
-fn test_blur_by_index_u16() {
-    generic_test_blur::<U16>(16, 16);
-}
-
-#[test]
-fn test_blur_by_index_u32() {
-    generic_test_blur::<U32>(96, 64);
+fn test_blur_by_index() {
+    gen_test_index::<U2>(30, 30);
+    gen_test_index::<U8>(16, 40);
+    gen_test_index::<U32>(96, 64);
 }

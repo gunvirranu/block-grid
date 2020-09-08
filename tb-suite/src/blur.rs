@@ -6,7 +6,8 @@ pub fn blur_by_index<G>(rows: usize, cols: usize, img: &G, out: &mut G)
 where
     G: Index<(usize, usize), Output = u8> + IndexMut<(usize, usize)>,
 {
-    assert!(rows >= 3 && cols >= 3);
+    debug_assert!(rows >= 3 && cols >= 3);
+
     // Copy perimeter
     for i in 0..rows {
         out[(i, 0)] = img[(i, 0)];
@@ -16,6 +17,7 @@ where
         out[(0, j)] = img[(0, j)];
         out[(rows - 1, j)] = img[(rows - 1, j)];
     }
+
     // Iterate over each pixel
     for i in 1..(rows - 1) {
         for j in 1..(cols - 1) {
