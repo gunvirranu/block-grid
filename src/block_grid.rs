@@ -1,5 +1,6 @@
-use std::marker::PhantomData;
-use std::ops::{Index, IndexMut};
+use alloc::{vec, vec::Vec};
+use core::marker::PhantomData;
+use core::ops::{Index, IndexMut};
 
 use crate::iters::{BlockIter, BlockIterMut, RowMajorIter, RowMajorIterMut};
 use crate::{BlockDim, Coords};

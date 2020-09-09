@@ -1,5 +1,5 @@
-use std::marker::PhantomData;
-use std::ptr::NonNull;
+use core::marker::PhantomData;
+use core::ptr::NonNull;
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
 

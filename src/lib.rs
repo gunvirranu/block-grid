@@ -1,6 +1,15 @@
+#![no_std]
+
+extern crate alloc;
+
+#[cfg(test)]
+#[macro_use]
+extern crate std;
+
 mod block_grid;
 mod block_width;
 mod iters;
+
 #[cfg(test)]
 mod tests;
 
