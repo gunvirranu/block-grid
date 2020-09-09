@@ -7,16 +7,30 @@ jobs:
     name: Bench
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
       - name: Set up toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
 
-      - name: Run Criterion
+      - name: Checkout master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Bench base
         uses: actions-rs/cargo@v1
         with:
           command: bench
-          args: --workspace
+          args: --workspace -- --save-baseline base
+
+      - name: Checkout branch
+        uses: actions/checkout@v2
+        with:
+          clean: false
+
+      - name: Bench changes
+        uses: actions-rs/cargo@v1
+        with:
+          command: bench
+          args: --workspace -- --baseline base
