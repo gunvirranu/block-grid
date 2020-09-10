@@ -201,14 +201,14 @@ fn gen_row_major_iter_mut<B: BlockDim>() {
             let (c, e) = it.next().unwrap();
             assert_eq!(c, (i, j));
             assert_eq!(*e, 7);
-            *e = rows * i + j;
+            *e = cols * i + j;
         }
     }
     assert!(it.next().is_none());
     // Check if mutated correctly
     for i in 0..rows {
         for j in 0..cols {
-            assert_eq!(grid[(i, j)], rows * i + j);
+            assert_eq!(grid[(i, j)], cols * i + j);
         }
     }
 }
