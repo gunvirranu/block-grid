@@ -14,6 +14,9 @@ array2d = "0.2.1"
 criterion = "0.3.3"
 fastrand = "1.3.3"
 
+[lib]
+bench = false
+
 [[bench]]
 name = "unit"
 harness = false
