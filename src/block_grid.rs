@@ -111,8 +111,12 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
             .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
     }
 
-    pub fn each_iter_mut(&mut self) -> impl Iterator<Item = &mut T> + ExactSizeIterator {
-        self.buf.iter_mut()
+    pub fn each_iter_mut(&mut self) -> impl Iterator<Item = (Coords, &mut T)> + ExactSizeIterator {
+        let col_blocks = self.col_blocks();
+        self.buf
+            .iter_mut()
+            .enumerate()
+            .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
     }
 
     pub fn block_iter(&self) -> BlockIter<T, B> {
