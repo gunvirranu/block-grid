@@ -104,6 +104,14 @@ fn iterators(c: &mut Criterion) {
         })
     });
 
+    g.bench_function("block_iter", |b| {
+        b.iter(|| {
+            for block in grid.block_iter() {
+                black_box(block);
+            }
+        })
+    });
+
     g.bench_function("block_iter_index", |b| {
         b.iter(|| {
             for block in grid.block_iter() {
