@@ -44,7 +44,7 @@ where
         out[(rows - 1, j)] = img[(rows - 1, j)];
     }
 
-    // Iterate over each pixel
+    // Iterate over each inner pixel
     for i in 1..(rows - 1) {
         for j in 1..(cols - 1) {
             out[(i, j)] = get_new_pix(img, (i, j));
@@ -77,39 +77,31 @@ pub fn blur_blockgrid<B: BlockDim>(img: &BlockGrid<u8, B>, out: &mut BlockGrid<u
     let (rows, cols) = (img.rows(), img.cols());
     debug_assert!(rows >= 3 && cols >= 3);
 
-    // TODO: Convert to `each_iter` when indices added
-    // Iterate in memory storage order
-    for bi in 0..img.row_blocks() {
-        for bj in 0..img.col_blocks() {
-            for si in 0..B::WIDTH {
-                for sj in 0..B::WIDTH {
-                    let (i, j) = (B::WIDTH * bi + si, B::WIDTH * bj + sj);
-                    // Copy perimeter
-                    if i == 0 || j == 0 || i == rows - 1 || j == cols - 1 {
-                        // SAFETY: Generated coordinates _should_ be valid
-                        unsafe {
-                            *out.get_unchecked_mut((i, j)) = *img.get_unchecked((i, j));
-                        }
-                    } else {
-                        let tot: u32 = [
-                            (i - 1, j - 1),
-                            (i - 1, j),
-                            (i - 1, j + 1),
-                            (i, j - 1),
-                            (i, j),
-                            (i, j + 1),
-                            (i + 1, j - 1),
-                            (i + 1, j),
-                            (i + 1, j + 1),
-                        ]
-                        .iter()
-                        // SAFETY: Invalid indices are filtered above
-                        .map(|&c| unsafe { *img.get_unchecked(c) } as u32)
-                        .sum();
-                        out[(i, j)] = (tot / 9) as u8;
-                    }
-                }
+    // Iterate over each pixel
+    for ((i, j), &x) in img.each_iter() {
+        // Copy perimeter
+        if i == 0 || j == 0 || i == rows - 1 || j == cols - 1 {
+            // SAFETY: Generated coordinates _should_ be valid
+            unsafe {
+                *out.get_unchecked_mut((i, j)) = x;
             }
+        } else {
+            let tot: u32 = [
+                (i - 1, j - 1),
+                (i - 1, j),
+                (i - 1, j + 1),
+                (i, j - 1),
+                (i, j),
+                (i, j + 1),
+                (i + 1, j - 1),
+                (i + 1, j),
+                (i + 1, j + 1),
+            ]
+            .iter()
+            // SAFETY: Invalid indices are filtered above
+            .map(|&c| unsafe { *img.get_unchecked(c) } as u32)
+            .sum();
+            out[(i, j)] = (tot / 9) as u8;
         }
     }
 }

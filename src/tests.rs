@@ -10,7 +10,7 @@ fn gen_from_raw_vec<B: BlockDim>() {
     let grid = BG::<_, B>::from_raw_vec(rows, cols, data.clone()).unwrap();
     assert_eq!((grid.rows(), grid.cols()), (rows, cols));
     assert_eq!(grid.size(), data.len());
-    for (&x, &y) in grid.each_iter().zip(data.iter()) {
+    for ((_, &x), &y) in grid.each_iter().zip(data.iter()) {
         assert_eq!(x, y);
     }
 }
@@ -20,7 +20,7 @@ fn gen_filled<B: BlockDim>() {
     let grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
     assert_eq!((grid.rows(), grid.cols()), (rows, cols));
     assert_eq!(grid.size(), rows * cols);
-    for &x in grid.each_iter() {
+    for (_, &x) in grid.each_iter() {
         assert_eq!(x, 7);
     }
 }
@@ -112,6 +112,58 @@ fn gen_contains<B: BlockDim>() {
         assert!(!grid.contains((0, cols)));
         assert!(!grid.contains((rows, 0)));
         assert!(!grid.contains((rows, cols)));
+    }
+}
+
+fn gen_each_iter<B: BlockDim>() {
+    let (rows, cols) = (3 * B::WIDTH, 2 * B::WIDTH);
+    let data: Vec<_> = (0..(rows * cols)).collect();
+    let grid = BG::<_, B>::from_raw_vec(rows, cols, data).unwrap();
+    assert_eq!(grid.each_iter().count(), grid.size());
+
+    let mut it = grid.each_iter();
+    for bi in 0..grid.row_blocks() {
+        for bj in 0..grid.col_blocks() {
+            for si in 0..B::WIDTH {
+                for sj in 0..B::WIDTH {
+                    let c = (B::WIDTH * bi + si, B::WIDTH * bj + sj);
+                    let (ct, &e) = it.next().unwrap();
+                    assert_eq!(ct, c);
+                    assert_eq!(e, grid[c]);
+                }
+            }
+        }
+    }
+    assert!(it.next().is_none());
+}
+
+fn gen_each_iter_mut<B: BlockDim>() {
+    let (rows, cols) = (3 * B::WIDTH, 2 * B::WIDTH);
+    let mut grid = BG::<_, B>::filled(rows, cols, 7usize).unwrap();
+    assert_eq!(grid.each_iter_mut().count(), grid.size());
+    let (row_blocks, col_blocks) = (grid.row_blocks(), grid.col_blocks());
+    // Mutate while iterating
+    let mut it = grid.each_iter_mut();
+    for bi in 0..row_blocks {
+        for bj in 0..col_blocks {
+            for si in 0..B::WIDTH {
+                for sj in 0..B::WIDTH {
+                    let c = (B::WIDTH * bi + si, B::WIDTH * bj + sj);
+                    let (ct, e) = it.next().unwrap();
+                    assert_eq!(ct, c);
+                    assert_eq!(*e, 7);
+                    *e = cols * c.0 + c.1;
+                }
+            }
+        }
+    }
+    assert!(it.next().is_none());
+    drop(it);
+    // Check if mutated correctly
+    for i in 0..rows {
+        for j in 0..cols {
+            assert_eq!(grid[(i, j)], cols * i + j);
+        }
     }
 }
 
@@ -260,6 +312,16 @@ fn test_block_size() {
 #[test]
 fn test_contains() {
     test_for!(gen_contains; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_each_iter() {
+    test_for!(gen_each_iter; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_each_iter_mut() {
+    test_for!(gen_each_iter_mut; U2, U4, U8, U16, U32);
 }
 
 #[test]
