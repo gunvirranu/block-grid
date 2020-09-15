@@ -41,7 +41,9 @@ fn main() {
     // | 18 19 | 20 21 | 22 23 |
     // +-----------------------+
 
-    // TODO: Use `raw` to show first four elements
+    // Access raw array
+    let first_five = &grid.raw()[..5];
+    assert_eq!(first_five, &[0, 1, 6, 7, 2]);
 
     // Iterate over blocks, and access the last
     let block = grid.block_iter().last().unwrap();
