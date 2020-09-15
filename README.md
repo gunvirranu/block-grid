@@ -13,7 +13,13 @@
 
 ## Features
 
-TODO: Add gouda stuff
+- Can store any type
+- Generic compile-time block sizes
+- Indexing with `(row, col): (usize, usize)`
+- Block level access with `Block` and `BlockMut`
+- Constructors from row-major and column-major order arrays
+- Iterators for in-memory and row-major order, and by block
+- `no_std` support
 
 ## Quickstart
 
