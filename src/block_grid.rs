@@ -102,6 +102,14 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.get_unchecked_mut(ind)
     }
 
+    pub fn raw(&self) -> &[T] {
+        &self.buf
+    }
+
+    pub fn raw_mut(&mut self) -> &mut [T] {
+        &mut self.buf
+    }
+
     pub fn each_iter(&self) -> impl Iterator<Item = (Coords, &T)> + ExactSizeIterator {
         let col_blocks = self.col_blocks();
         self.buf
