@@ -47,7 +47,14 @@ TODO: Point to `CHANGELOG.md` when created
 
 ## Alternatives
 
-TODO: Link to alternative crates
+If your access patterns suit a typical row-major memory representation, check out [`array2d`][array2d], [`imgref`][imgref], [`grid`][grid], or [`toodee`][toodee]. The last two support dynamic resizing. For matrices and linear algebra, there's also [`nalgebra`][nalgebra].
+
+<!-- Links -->
+[array2d]: https://crates.io/crates/array2d "array2d"
+[imgref]: https://crates.io/crates/imgref "imgref"
+[grid]: https://crates.io/crates/grid "grid"
+[toodee]: https://crates.io/crates/toodee "toodee"
+[nalgebra]: https://nalgebra.org "nalgebra"
 
 <!-- Badges -->
 [ci]: https://github.com/gunvirranu/block-grid/actions "Github Actions"
