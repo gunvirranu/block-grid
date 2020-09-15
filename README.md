@@ -1,24 +1,34 @@
+<div class="title-block" style="text-align: center;" align="center">
+
 # `block-grid`
+
+#### A quick, cache-conscious, blocked 2D array
 
 [![CI][ci_badge]][ci]
 
-`block-grid` gives you a fixed size, two-dimensional array, with a tiled memory representation. This has the sweet benefit of being much more cache-friendly if you're often accessing nearby coordinates.
+</div>
+
+`block-grid` gives you a fixed size, two-dimensional array, with a blocked memory representation. This has the sweet benefit of being much more cache-friendly if you're often accessing nearby coordinates.
 
 ## Features
 
-TODO
+TODO: Add gouda stuff
 
-## Trade-offs
+## Quickstart
 
-TODO
-
-## Examples
-
-TODO
+TODO: Add code example
 
 ## Why
 
-TODO
+TODO: Stuff about caches
+
+## Trade-offs
+
+TODO: Add some cons
+
+## Changelog
+
+TODO: Point to `CHANGELOG.md` when created
 
 ## License
 
@@ -26,7 +36,7 @@ TODO
 
 ## Alternatives
 
-TODO
+TODO: Link to alternative crates
 
 <!-- Badges -->
 [ci]: https://github.com/gunvirranu/block-grid/actions "Github Actions"
