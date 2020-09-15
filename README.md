@@ -41,16 +41,16 @@ fn main() {
     // | 18 19 | 20 21 | 22 23 |
     // +-----------------------+
 
+    // Indexing
+    assert_eq!(grid[(1, 3)], 9);
+
     // Access raw array
     let first_five = &grid.raw()[..5];
     assert_eq!(first_five, &[0, 1, 6, 7, 2]);
 
     // Iterate over blocks, and access the last
     let block = grid.block_iter().last().unwrap();
-    assert_eq!(block[(0, 0)], 16);
     assert_eq!(block[(0, 1)], 17);
-    assert_eq!(block[(1, 0)], 22);
-    assert_eq!(block[(1, 1)], 23);
 
     // Iterate in row-major order
     for (i, (_coords, &x)) in grid.row_major_iter().enumerate() {
