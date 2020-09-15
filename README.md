@@ -23,7 +23,37 @@
 
 ## Quickstart
 
-TODO: Add code example
+```rust
+use block_grid::{BlockGrid, BlockWidth::U2};
+
+fn main() {
+    let data: Vec<_> = (0..(4 * 6)).collect();
+
+    let grid = BlockGrid::<usize, U2>::from_row_major(4, 6, &data).unwrap();
+
+    //  0  1 |  2  3 |  4  5
+    //  6  7 |  8  9 | 10 11
+    // ------+-------+------
+    // 12 13 | 14 15 | 16 17
+    // 18 19 | 20 21 | 22 23
+
+    // TODO: Use `raw` to show first four elements
+
+    let block = grid.block_iter().last().unwrap();
+    assert_eq!(block[(0, 0)], 16);
+    assert_eq!(block[(0, 1)], 17);
+    assert_eq!(block[(1, 0)], 22);
+    assert_eq!(block[(1, 1)], 23);
+
+    for (i, (_coords, &x)) in grid.row_major_iter().enumerate() {
+        assert_eq!(x, i);
+    }
+
+    for ((row, col), &x) in grid.each_iter() {
+        assert_eq!(row * 6 + col, x);
+    }
+}
+```
 
 ## Why
 
