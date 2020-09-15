@@ -5,6 +5,7 @@
 #### A quick, cache-conscious, blocked 2D array
 
 [![CI][ci_badge]][ci]
+[![License][license_badge]][license]
 
 </div>
 
@@ -41,3 +42,5 @@ TODO: Link to alternative crates
 <!-- Badges -->
 [ci]: https://github.com/gunvirranu/block-grid/actions "Github Actions"
 [ci_badge]: https://github.com/gunvirranu/block-grid/workflows/CI/badge.svg?branch=master "Github Actions"
+[license]: #license "License"
+[license_badge]: https://img.shields.io/badge/license-MIT-blue.svg "License"
