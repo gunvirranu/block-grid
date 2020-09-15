@@ -31,7 +31,11 @@ TODO: Stuff about caches
 
 ## Trade-offs
 
-TODO: Add some cons
+- Non-resizable, and grid dimensions have to be a multiple of the block size.
+- Currently, only square blocks, and power-of-two block sizes are supported.
+- Computing the modified index takes just a bit more time.
+- There are still cache misses when you cross tile boundaries.
+- No support for strides or general subsets.
 
 ## Changelog
 
