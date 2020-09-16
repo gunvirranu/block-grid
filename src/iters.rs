@@ -2,10 +2,11 @@ use core::marker::PhantomData;
 use core::ptr::NonNull;
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
+use core::slice::ChunksExact;
 
 pub struct BlockIter<'a, T, B: BlockDim> {
-    pub(crate) block_coords: Coords,
-    pub(crate) grid: &'a BlockGrid<T, B>,
+    chunks: ChunksExact<'a, T>,
+    _phantom: PhantomData<B>,
 }
 
 pub struct BlockIterMut<'a, T, B: BlockDim> {
@@ -25,22 +26,20 @@ pub struct RowMajorIterMut<'a, T, B: BlockDim> {
     pub(crate) _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
 }
 
+impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
+    pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
+        Self {
+            chunks: grid.raw().chunks_exact(B::AREA),
+            _phantom: PhantomData,
+        }
+    }
+}
+
 impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
     type Item = Block<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.block_coords.0 >= self.grid.row_blocks() {
-            return None;
-        }
-        let block = Block {
-            block_coords: self.block_coords,
-            grid: self.grid,
-        };
-        self.block_coords.1 += 1;
-        if self.block_coords.1 >= self.grid.col_blocks() {
-            self.block_coords = (self.block_coords.0 + 1, 0);
-        }
-        Some(block)
+        self.chunks.next().map(Block::new)
     }
 }
 

@@ -16,8 +16,8 @@ pub struct BlockGrid<T, B: BlockDim> {
 // TODO: Figure out how `PartialEq`/`Eq` should work
 #[derive(Debug)]
 pub struct Block<'a, T, B: BlockDim> {
-    pub(crate) block_coords: Coords,
-    pub(crate) grid: &'a BlockGrid<T, B>,
+    arr: &'a [T],
+    _phantom: PhantomData<B>,
 }
 
 #[derive(Debug)]
@@ -128,10 +128,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     pub fn block_iter(&self) -> BlockIter<T, B> {
-        BlockIter {
-            block_coords: (0, 0),
-            grid: self,
-        }
+        BlockIter::new(self)
     }
 
     pub fn block_iter_mut(&mut self) -> BlockIterMut<T, B> {
@@ -276,6 +273,15 @@ impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
 }
 
 impl<'a, T, B: BlockDim> Block<'a, T, B> {
+    // `arr` **must** be of length `B::AREA`
+    pub(crate) fn new(arr: &'a [T]) -> Self {
+        debug_assert_eq!(arr.len(), B::AREA);
+        Self {
+            arr,
+            _phantom: PhantomData,
+        }
+    }
+
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
@@ -284,18 +290,18 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
         if !self.contains(coords) {
             return None;
         }
-        self.grid.get(self.calc_coords(coords))
+        self.arr.get(self.calc_index(coords))
     }
 
     // TODO: Document unsafety
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
-        self.grid.get_unchecked(self.calc_coords(coords))
+        debug_assert!(self.contains(coords));
+        self.arr.get_unchecked(self.calc_index(coords))
     }
 
-    fn calc_coords(&self, (row, col): Coords) -> Coords {
-        let (block_row, block_col) = self.block_coords;
-        ((block_row << B::SHIFT) + row, (block_col << B::SHIFT) + col)
+    fn calc_index(&self, (row, col): Coords) -> usize {
+        B::WIDTH * row + col
     }
 }
 
@@ -303,10 +309,7 @@ impl<'a, T, B: BlockDim> Index<Coords> for Block<'a, T, B> {
     type Output = T;
 
     fn index(&self, coords: Coords) -> &Self::Output {
-        match self.get(coords) {
-            Some(x) => x,
-            None => panic!("Index out of bounds"),
-        }
+        self.get(coords).expect("Index out of bounds")
     }
 }
 
