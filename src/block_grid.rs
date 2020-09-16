@@ -342,7 +342,7 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
     }
 
     #[allow(clippy::missing_safety_doc)]
-    pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &T {
+    pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
         self.grid.get_unchecked_mut(self.calc_coords(coords))
     }
 
