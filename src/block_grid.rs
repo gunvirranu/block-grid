@@ -22,8 +22,8 @@ pub struct Block<'a, T, B: BlockDim> {
 
 #[derive(Debug)]
 pub struct BlockMut<'a, T, B: BlockDim> {
-    pub(crate) block_coords: Coords,
-    pub(crate) grid: &'a mut BlockGrid<T, B>,
+    arr: &'a mut [T],
+    _phantom: PhantomData<B>,
 }
 
 impl<T, B: BlockDim> BlockGrid<T, B> {
@@ -132,11 +132,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     pub fn block_iter_mut(&mut self) -> BlockIterMut<T, B> {
-        BlockIterMut {
-            block_coords: (0, 0),
-            grid: self.into(), // `self` is a valid reference
-            _phantom: PhantomData,
-        }
+        BlockIterMut::new(self)
     }
 
     pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
@@ -314,6 +310,15 @@ impl<'a, T, B: BlockDim> Index<Coords> for Block<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
+    // `arr` **must** be of length `B::AREA`
+    pub(crate) fn new(arr: &'a mut [T]) -> Self {
+        debug_assert_eq!(arr.len(), B::AREA);
+        Self {
+            arr,
+            _phantom: PhantomData,
+        }
+    }
+
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
@@ -322,29 +327,30 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
         if !self.contains(coords) {
             return None;
         }
-        self.grid.get(self.calc_coords(coords))
+        self.arr.get(self.calc_index(coords))
     }
 
     pub fn get_mut(&mut self, coords: Coords) -> Option<&mut T> {
         if !self.contains(coords) {
             return None;
         }
-        self.grid.get_mut(self.calc_coords(coords))
+        self.arr.get_mut(self.calc_index(coords))
     }
 
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
-        self.grid.get_unchecked(self.calc_coords(coords))
+        debug_assert!(self.contains(coords));
+        self.arr.get_unchecked(self.calc_index(coords))
     }
 
     #[allow(clippy::missing_safety_doc)]
     pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
-        self.grid.get_unchecked_mut(self.calc_coords(coords))
+        debug_assert!(self.contains(coords));
+        self.arr.get_unchecked_mut(self.calc_index(coords))
     }
 
-    fn calc_coords(&self, (row, col): Coords) -> Coords {
-        let (block_row, block_col) = self.block_coords;
-        ((block_row << B::SHIFT) + row, (block_col << B::SHIFT) + col)
+    fn calc_index(&self, (row, col): Coords) -> usize {
+        B::WIDTH * row + col
     }
 }
 
@@ -352,18 +358,12 @@ impl<'a, T, B: BlockDim> Index<Coords> for BlockMut<'a, T, B> {
     type Output = T;
 
     fn index(&self, coords: Coords) -> &Self::Output {
-        match self.get(coords) {
-            Some(x) => x,
-            None => panic!("Index out of bounds"),
-        }
+        self.get(coords).expect("Index out of bounds")
     }
 }
 
 impl<'a, T, B: BlockDim> IndexMut<Coords> for BlockMut<'a, T, B> {
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
-        match self.get_mut(coords) {
-            Some(x) => x,
-            None => panic!("Index out of bounds"),
-        }
+        self.get_mut(coords).expect("Index out of bounds")
     }
 }

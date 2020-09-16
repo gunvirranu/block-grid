@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 use core::ptr::NonNull;
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
-use core::slice::ChunksExact;
+use core::slice::{ChunksExact, ChunksExactMut};
 
 pub struct BlockIter<'a, T, B: BlockDim> {
     chunks: ChunksExact<'a, T>,
@@ -10,9 +10,8 @@ pub struct BlockIter<'a, T, B: BlockDim> {
 }
 
 pub struct BlockIterMut<'a, T, B: BlockDim> {
-    pub(crate) block_coords: Coords,
-    pub(crate) grid: NonNull<BlockGrid<T, B>>,
-    pub(crate) _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
+    chunks: ChunksExactMut<'a, T>,
+    _phantom: PhantomData<B>,
 }
 
 pub struct RowMajorIter<'a, T, B: BlockDim> {
@@ -43,28 +42,20 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
     }
 }
 
+impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
+    pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
+        Self {
+            chunks: grid.raw_mut().chunks_exact_mut(B::AREA),
+            _phantom: PhantomData,
+        }
+    }
+}
+
 impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
     type Item = BlockMut<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // SAFETY: `self.grid` is a valid pointer
-        let (row_blocks, col_blocks) = unsafe {
-            let grid_ref = self.grid.as_ref();
-            (grid_ref.row_blocks(), grid_ref.col_blocks())
-        };
-        if self.block_coords.0 >= row_blocks {
-            return None;
-        }
-        let block = BlockMut {
-            block_coords: self.block_coords,
-            // SAFETY: `self.grid` is a valid mutable pointer
-            grid: unsafe { &mut *self.grid.as_ptr() },
-        };
-        self.block_coords.1 += 1;
-        if self.block_coords.1 >= col_blocks {
-            self.block_coords = (self.block_coords.0 + 1, 0);
-        }
-        Some(block)
+        self.chunks.next().map(BlockMut::new)
     }
 }
 
