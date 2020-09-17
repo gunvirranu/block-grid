@@ -4,6 +4,17 @@ use core::ptr::NonNull;
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
 use core::slice::{ChunksExact, ChunksExactMut};
 
+pub trait CoordsIterator: Iterator {
+    fn current_coords(&self) -> Coords;
+
+    fn coords(self) -> WithCoordsIter<Self>
+    where
+        Self: Sized,
+    {
+        WithCoordsIter { iter: self }
+    }
+}
+
 pub struct BlockIter<'a, T, B: BlockDim> {
     chunks: ChunksExact<'a, T>,
     _phantom: PhantomData<B>,
@@ -25,6 +36,11 @@ pub struct RowMajorIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
 }
 
+pub struct WithCoordsIter<I> {
+    iter: I,
+}
+
+// TODO: See if I can use the anonymous lifetime `'_` everywhere here
 impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
     pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
         Self {
@@ -105,5 +121,14 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
         // SAFETY: `self.grid` is a valid mutable pointer
         let elem = unsafe { &mut *self.grid.as_ptr() }.get_mut(c)?;
         Some((c, elem))
+    }
+}
+
+impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
+    type Item = (Coords, I::Item);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let c = self.iter.current_coords();
+        self.iter.next().map(|x| (c, x))
     }
 }
