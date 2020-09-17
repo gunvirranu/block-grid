@@ -26,12 +26,14 @@ pub struct BlockIterMut<'a, T, B: BlockDim> {
 }
 
 pub struct RowMajorIter<'a, T, B: BlockDim> {
-    coords: Coords,
+    row: usize,
+    col: usize,
     grid: &'a BlockGrid<T, B>,
 }
 
 pub struct RowMajorIterMut<'a, T, B: BlockDim> {
-    coords: Coords,
+    row: usize,
+    col: usize,
     grid: NonNull<BlockGrid<T, B>>,
     _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
 }
@@ -78,7 +80,8 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
 impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
     pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
         Self {
-            coords: (0, 0),
+            row: 0,
+            col: 0,
             grid,
         }
     }
@@ -86,7 +89,7 @@ impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
 
 impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIter<'a, T, B> {
     fn current_coords(&self) -> Coords {
-        self.coords
+        (self.row, self.col)
     }
 }
 
@@ -94,10 +97,11 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let c = self.coords;
-        self.coords.1 += 1;
-        if self.coords.1 >= self.grid.cols() {
-            self.coords = (c.0 + 1, 0);
+        let c = (self.row, self.col);
+        self.col += 1;
+        if self.col == self.grid.cols() {
+            self.row += 1;
+            self.col = 0;
         }
         self.grid.get(c)
     }
@@ -106,7 +110,8 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
 impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
         Self {
-            coords: (0, 0),
+            row: 0,
+            col: 0,
             grid: grid.into(),
             _phantom: PhantomData,
         }
@@ -115,7 +120,7 @@ impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
 
 impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIterMut<'a, T, B> {
     fn current_coords(&self) -> Coords {
-        self.coords
+        (self.row, self.col)
     }
 }
 
@@ -123,11 +128,12 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let c = self.coords;
-        self.coords.1 += 1;
+        let c = (self.row, self.col);
+        self.col += 1;
         // SAFETY: `self.grid` is a valid pointer
-        if self.coords.1 >= unsafe { self.grid.as_ref().cols() } {
-            self.coords = (c.0 + 1, 0);
+        if self.col == unsafe { self.grid.as_ref().cols() } {
+            self.row += 1;
+            self.col = 0;
         }
         // SAFETY: `self.grid` is a valid mutable pointer
         unsafe { &mut *self.grid.as_ptr() }.get_mut(c)
@@ -142,3 +148,5 @@ impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
         self.iter.next().map(|x| (c, x))
     }
 }
+
+// TODO: Impl more iterator trait bounds
