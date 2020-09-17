@@ -231,7 +231,7 @@ fn gen_row_major_iter<B: BlockDim>() {
     let grid = BG::<_, B>::from_raw_vec(rows, cols, data).unwrap();
     assert_eq!(grid.row_major_iter().count(), grid.size());
 
-    let mut it = grid.row_major_iter();
+    let mut it = grid.row_major_iter().coords();
     for i in 0..rows {
         for j in 0..cols {
             let (c, &e) = it.next().unwrap();

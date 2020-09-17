@@ -138,7 +138,7 @@ fn iterators(c: &mut Criterion) {
 
     g.bench_function("row_major_iter", |b| {
         b.iter(|| {
-            for (c, x) in grid.row_major_iter() {
+            for (c, x) in grid.row_major_iter().coords() {
                 black_box((c, x));
             }
         })

@@ -84,8 +84,14 @@ impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
     }
 }
 
+impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIter<'a, T, B> {
+    fn current_coords(&self) -> Coords {
+        self.coords
+    }
+}
+
 impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
-    type Item = (Coords, &'a T);
+    type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
         let c = self.coords;
@@ -93,8 +99,7 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
         if self.coords.1 >= self.grid.cols() {
             self.coords = (c.0 + 1, 0);
         }
-        let elem = self.grid.get(c)?;
-        Some((c, elem))
+        self.grid.get(c)
     }
 }
 
