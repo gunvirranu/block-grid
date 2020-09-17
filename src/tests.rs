@@ -247,7 +247,7 @@ fn gen_row_major_iter_mut<B: BlockDim>() {
     let mut grid = BG::<_, B>::filled(rows, cols, 7usize).unwrap();
     assert_eq!(grid.row_major_iter_mut().count(), grid.size());
     // Mutate while iterating
-    let mut it = grid.row_major_iter_mut();
+    let mut it = grid.row_major_iter_mut().coords();
     for i in 0..rows {
         for j in 0..cols {
             let (c, e) = it.next().unwrap();
