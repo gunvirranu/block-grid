@@ -15,14 +15,14 @@ pub struct BlockIterMut<'a, T, B: BlockDim> {
 }
 
 pub struct RowMajorIter<'a, T, B: BlockDim> {
-    pub(crate) coords: Coords,
-    pub(crate) grid: &'a BlockGrid<T, B>,
+    coords: Coords,
+    grid: &'a BlockGrid<T, B>,
 }
 
 pub struct RowMajorIterMut<'a, T, B: BlockDim> {
-    pub(crate) coords: Coords,
-    pub(crate) grid: NonNull<BlockGrid<T, B>>,
-    pub(crate) _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
+    coords: Coords,
+    grid: NonNull<BlockGrid<T, B>>,
+    _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
 }
 
 impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
@@ -59,6 +59,15 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
     }
 }
 
+impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
+    pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
+        Self {
+            coords: (0, 0),
+            grid,
+        }
+    }
+}
+
 impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
     type Item = (Coords, &'a T);
 
@@ -70,6 +79,16 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
         }
         let elem = self.grid.get(c)?;
         Some((c, elem))
+    }
+}
+
+impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
+    pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
+        Self {
+            coords: (0, 0),
+            grid: grid.into(),
+            _phantom: PhantomData,
+        }
     }
 }
 

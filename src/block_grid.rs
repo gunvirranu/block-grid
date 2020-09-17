@@ -136,18 +136,11 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
-        RowMajorIter {
-            coords: (0, 0),
-            grid: self,
-        }
+        RowMajorIter::new(self)
     }
 
     pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<T, B> {
-        RowMajorIterMut {
-            coords: (0, 0),
-            grid: self.into(), // `self` is a valid reference
-            _phantom: PhantomData,
-        }
+        RowMajorIterMut::new(self)
     }
 
     fn valid_size(rows: usize, cols: usize) -> bool {
