@@ -4,7 +4,7 @@ extern crate block_grid;
 use std::ops::{Index, IndexMut};
 
 use array2d::Array2D;
-use block_grid::{BlockDim, BlockGrid};
+use block_grid::{BlockDim, BlockGrid, CoordsIterator};
 
 /// New pixel is average of 3x3 kernel
 fn get_new_pix<G>(img: &G, (i, j): (usize, usize)) -> u8
@@ -78,7 +78,7 @@ pub fn blur_blockgrid<B: BlockDim>(img: &BlockGrid<u8, B>, out: &mut BlockGrid<u
     debug_assert!(rows >= 3 && cols >= 3);
 
     // Iterate over each pixel
-    for ((i, j), &x) in img.each_iter() {
+    for ((i, j), &x) in img.each_iter().coords() {
         // Copy perimeter
         if i == 0 || j == 0 || i == rows - 1 || j == cols - 1 {
             // SAFETY: Generated coordinates _should_ be valid

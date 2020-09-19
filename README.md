@@ -53,12 +53,12 @@ fn main() {
     assert_eq!(block[(0, 1)], 17);
 
     // Iterate in row-major order
-    for (i, (_coords, &x)) in grid.row_major_iter().enumerate() {
+    for (i, &x) in grid.row_major_iter().enumerate() {
         assert_eq!(x, i);
     }
 
     // Iterate in memory order, with coordinates
-    for ((row, col), &x) in grid.each_iter() {
+    for ((row, col), &x) in grid.each_iter().coords() {
         assert_eq!(row * 6 + col, x);
     }
 }

@@ -2,7 +2,7 @@ use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 
-use crate::iters::{BlockIter, BlockIterMut, RowMajorIter, RowMajorIterMut};
+use crate::iters::{BlockIter, BlockIterMut, EachIter, RowMajorIter, RowMajorIterMut};
 use crate::{BlockDim, Coords};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -125,13 +125,8 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     #[inline]
-    pub fn each_iter(&self) -> impl Iterator<Item = (Coords, &T)> + ExactSizeIterator {
-        let col_blocks = self.col_blocks();
-        self.buf
-            .iter()
-            .enumerate()
-            // TODO: Bench against `EachIterCoords` adapter that holds state
-            .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
+    pub fn each_iter(&self) -> EachIter<T, B> {
+        EachIter::new(self)
     }
 
     #[inline]
