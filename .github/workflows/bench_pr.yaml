@@ -22,7 +22,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: bench
-          args: --workspace -- --save-baseline base
+          args: --workspace
 
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -33,4 +33,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: bench
-          args: --workspace -- --baseline base
+          args: --workspace
