@@ -16,6 +16,9 @@ pub trait CoordsIterator: Iterator {
 }
 
 pub struct BlockIter<'a, T, B: BlockDim> {
+    block_row: usize,
+    block_col: usize,
+    col_blocks: usize,
     chunks: ChunksExact<'a, T>,
     _phantom: PhantomData<B>,
 }
@@ -46,9 +49,18 @@ pub struct WithCoordsIter<I> {
 impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
     pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
         Self {
+            block_row: 0,
+            block_col: 0,
+            col_blocks: grid.col_blocks(),
             chunks: grid.raw().chunks_exact(B::AREA),
             _phantom: PhantomData,
         }
+    }
+}
+
+impl<'a, T, B: BlockDim> CoordsIterator for BlockIter<'a, T, B> {
+    fn current_coords(&self) -> Coords {
+        (self.block_row, self.block_col)
     }
 }
 
@@ -56,6 +68,11 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
     type Item = Block<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        self.block_col += 1;
+        if self.block_col == self.col_blocks {
+            self.block_row += 1;
+            self.block_col = 0;
+        }
         self.chunks.next().map(Block::new)
     }
 }

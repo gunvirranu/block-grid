@@ -174,19 +174,23 @@ fn gen_block_iter<B: BlockDim>() {
     assert_eq!(grid.block_iter().count(), grid.blocks());
 
     let (mut bi, mut bj): Coords = (0, 0);
-    for block in grid.block_iter() {
+    for (c, block) in grid.block_iter().coords() {
+        assert_eq!(c, (bi, bj));
         for si in 0..B::WIDTH {
             for sj in 0..B::WIDTH {
-                assert_eq!(block[(si, sj)], grid[(bi + si, bj + sj)]);
+                assert_eq!(
+                    block[(si, sj)],
+                    grid[(B::WIDTH * bi + si, B::WIDTH * bj + sj)]
+                );
             }
         }
         assert!(block.get((B::WIDTH, B::WIDTH - 1)).is_none());
         assert!(block.get((B::WIDTH - 1, B::WIDTH)).is_none());
         assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
 
-        bj += B::WIDTH;
-        if bj == cols {
-            bi += B::WIDTH;
+        bj += 1;
+        if bj == grid.col_blocks() {
+            bi += 1;
             bj = 0;
         }
     }
