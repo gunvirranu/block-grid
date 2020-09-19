@@ -1,3 +1,4 @@
+use core::iter::FusedIterator;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
 use core::slice::{ChunksExact, ChunksExactMut};
@@ -198,4 +199,10 @@ impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
     }
 }
 
-// TODO: Impl more iterator trait bounds
+impl<I: CoordsIterator + ExactSizeIterator> ExactSizeIterator for WithCoordsIter<I> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl<I: CoordsIterator + FusedIterator> FusedIterator for WithCoordsIter<I> {}
