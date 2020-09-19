@@ -174,19 +174,23 @@ fn gen_block_iter<B: BlockDim>() {
     assert_eq!(grid.block_iter().count(), grid.blocks());
 
     let (mut bi, mut bj): Coords = (0, 0);
-    for block in grid.block_iter() {
+    for (c, block) in grid.block_iter().coords() {
+        assert_eq!(c, (bi, bj));
         for si in 0..B::WIDTH {
             for sj in 0..B::WIDTH {
-                assert_eq!(block[(si, sj)], grid[(bi + si, bj + sj)]);
+                assert_eq!(
+                    block[(si, sj)],
+                    grid[(B::WIDTH * bi + si, B::WIDTH * bj + sj)]
+                );
             }
         }
         assert!(block.get((B::WIDTH, B::WIDTH - 1)).is_none());
         assert!(block.get((B::WIDTH - 1, B::WIDTH)).is_none());
         assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
 
-        bj += B::WIDTH;
-        if bj == cols {
-            bi += B::WIDTH;
+        bj += 1;
+        if bj == grid.col_blocks() {
+            bi += 1;
             bj = 0;
         }
     }
@@ -195,32 +199,40 @@ fn gen_block_iter<B: BlockDim>() {
 fn gen_block_iter_mut<B: BlockDim>() {
     let (rows, cols) = (3 * B::WIDTH, 2 * B::WIDTH);
     let mut grid = BG::<_, B>::filled(rows, cols, 7usize).unwrap();
+    let col_blocks = grid.col_blocks();
     assert_eq!(grid.block_iter_mut().count(), grid.blocks());
 
-    for (b_ind, mut block) in grid.block_iter_mut().enumerate() {
+    let (mut bi, mut bj): Coords = (0, 0);
+    for (c, mut block) in grid.block_iter_mut().coords() {
+        assert_eq!(c, (bi, bj));
         for si in 0..B::WIDTH {
             for sj in 0..B::WIDTH {
                 assert_eq!(block[(si, sj)], 7);
+                let b_ind = bi * col_blocks + bj;
                 block[(si, sj)] = b_ind * B::AREA + si * B::WIDTH + sj;
             }
         }
         assert!(block.get((B::WIDTH, B::WIDTH - 1)).is_none());
         assert!(block.get((B::WIDTH - 1, B::WIDTH)).is_none());
         assert!(block.get((B::WIDTH, B::WIDTH)).is_none());
+
+        bj += 1;
+        if bj == col_blocks {
+            bi += 1;
+            bj = 0;
+        }
     }
 
-    let (mut bi, mut bj): Coords = (0, 0);
-    for (b_ind, block) in grid.block_iter().enumerate() {
+    for ((bi, bj), block) in grid.block_iter().coords() {
         for si in 0..B::WIDTH {
             for sj in 0..B::WIDTH {
-                assert_eq!(block[(si, sj)], grid[(bi + si, bj + sj)]);
+                assert_eq!(
+                    block[(si, sj)],
+                    grid[(B::WIDTH * bi + si, B::WIDTH * bj + sj)]
+                );
+                let b_ind = bi * col_blocks + bj;
                 assert_eq!(block[(si, sj)], b_ind * B::AREA + si * B::WIDTH + sj);
             }
-        }
-        bj += B::WIDTH;
-        if bj == cols {
-            bi += B::WIDTH;
-            bj = 0;
         }
     }
 }
@@ -231,7 +243,7 @@ fn gen_row_major_iter<B: BlockDim>() {
     let grid = BG::<_, B>::from_raw_vec(rows, cols, data).unwrap();
     assert_eq!(grid.row_major_iter().count(), grid.size());
 
-    let mut it = grid.row_major_iter();
+    let mut it = grid.row_major_iter().coords();
     for i in 0..rows {
         for j in 0..cols {
             let (c, &e) = it.next().unwrap();
@@ -247,7 +259,7 @@ fn gen_row_major_iter_mut<B: BlockDim>() {
     let mut grid = BG::<_, B>::filled(rows, cols, 7usize).unwrap();
     assert_eq!(grid.row_major_iter_mut().count(), grid.size());
     // Mutate while iterating
-    let mut it = grid.row_major_iter_mut();
+    let mut it = grid.row_major_iter_mut().coords();
     for i in 0..rows {
         for j in 0..cols {
             let (c, e) = it.next().unwrap();
