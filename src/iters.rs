@@ -1,8 +1,8 @@
 use core::marker::PhantomData;
 use core::ptr::NonNull;
+use core::slice::{ChunksExact, ChunksExactMut};
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
-use core::slice::{ChunksExact, ChunksExactMut};
 
 pub trait CoordsIterator: Iterator {
     fn current_coords(&self) -> Coords;
@@ -180,6 +180,21 @@ impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
     fn next(&mut self) -> Option<Self::Item> {
         let c = self.iter.current_coords();
         self.iter.next().map(|x| (c, x))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        if n > 1 {
+            self.iter.nth(n - 1)?;
+        }
+        self.next()
     }
 }
 
