@@ -112,6 +112,14 @@ fn iterators(c: &mut Criterion) {
         })
     });
 
+    g.bench_function("block_iter_coords", |b| {
+        b.iter(|| {
+            for (c, block) in grid.block_iter().coords() {
+                black_box((c, block));
+            }
+        })
+    });
+
     g.bench_function("block_iter_index", |b| {
         b.iter(|| {
             for block in grid.block_iter() {
