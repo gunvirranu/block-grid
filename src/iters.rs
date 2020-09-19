@@ -24,6 +24,9 @@ pub struct BlockIter<'a, T, B: BlockDim> {
 }
 
 pub struct BlockIterMut<'a, T, B: BlockDim> {
+    block_row: usize,
+    block_col: usize,
+    col_blocks: usize,
     chunks: ChunksExactMut<'a, T>,
     _phantom: PhantomData<B>,
 }
@@ -80,9 +83,18 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
 impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
         Self {
+            block_row: 0,
+            block_col: 0,
+            col_blocks: grid.col_blocks(),
             chunks: grid.raw_mut().chunks_exact_mut(B::AREA),
             _phantom: PhantomData,
         }
+    }
+}
+
+impl<'a, T, B: BlockDim> CoordsIterator for BlockIterMut<'a, T, B> {
+    fn current_coords(&self) -> Coords {
+        (self.block_row, self.block_col)
     }
 }
 
@@ -90,6 +102,11 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
     type Item = BlockMut<'a, T, B>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        self.block_col += 1;
+        if self.block_col == self.col_blocks {
+            self.block_row += 1;
+            self.block_col = 0;
+        }
         self.chunks.next().map(BlockMut::new)
     }
 }
