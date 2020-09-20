@@ -63,6 +63,7 @@ impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> CoordsIterator for BlockIter<'a, T, B> {
+    #[inline]
     fn current_coords(&self) -> Coords {
         (self.block_row, self.block_col)
     }
@@ -71,6 +72,7 @@ impl<'a, T, B: BlockDim> CoordsIterator for BlockIter<'a, T, B> {
 impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
     type Item = Block<'a, T, B>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.block_col += 1;
         if self.block_col == self.col_blocks {
@@ -94,6 +96,7 @@ impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> CoordsIterator for BlockIterMut<'a, T, B> {
+    #[inline]
     fn current_coords(&self) -> Coords {
         (self.block_row, self.block_col)
     }
@@ -102,6 +105,7 @@ impl<'a, T, B: BlockDim> CoordsIterator for BlockIterMut<'a, T, B> {
 impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
     type Item = BlockMut<'a, T, B>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.block_col += 1;
         if self.block_col == self.col_blocks {
@@ -123,6 +127,7 @@ impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIter<'a, T, B> {
+    #[inline]
     fn current_coords(&self) -> Coords {
         (self.row, self.col)
     }
@@ -131,6 +136,7 @@ impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIter<'a, T, B> {
 impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
     type Item = &'a T;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let c = (self.row, self.col);
         self.col += 1;
@@ -154,6 +160,7 @@ impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIterMut<'a, T, B> {
+    #[inline]
     fn current_coords(&self) -> Coords {
         (self.row, self.col)
     }
@@ -162,6 +169,7 @@ impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIterMut<'a, T, B> {
 impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
     type Item = &'a mut T;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let c = (self.row, self.col);
         self.col += 1;
@@ -178,19 +186,23 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
 impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
     type Item = (Coords, I::Item);
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let c = self.iter.current_coords();
         self.iter.next().map(|x| (c, x))
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 
+    #[inline]
     fn count(self) -> usize {
         self.iter.count()
     }
 
+    #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
         if n > 1 {
             self.iter.nth(n - 1)?;
@@ -200,6 +212,7 @@ impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
 }
 
 impl<I: CoordsIterator + ExactSizeIterator> ExactSizeIterator for WithCoordsIter<I> {
+    #[inline]
     fn len(&self) -> usize {
         self.iter.len()
     }

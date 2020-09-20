@@ -39,38 +39,47 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         })
     }
 
+    #[inline]
     pub fn take_raw_vec(self) -> Vec<T> {
         self.buf
     }
 
+    #[inline]
     pub fn rows(&self) -> usize {
         self.rows
     }
 
+    #[inline]
     pub fn cols(&self) -> usize {
         self.cols
     }
 
+    #[inline]
     pub fn size(&self) -> usize {
         self.rows() * self.cols()
     }
 
+    #[inline]
     pub fn row_blocks(&self) -> usize {
         self.rows >> B::SHIFT
     }
 
+    #[inline]
     pub fn col_blocks(&self) -> usize {
         self.cols >> B::SHIFT
     }
 
+    #[inline]
     pub fn blocks(&self) -> usize {
         self.row_blocks() * self.col_blocks()
     }
 
+    #[inline]
     pub fn contains(&self, (row, cols): Coords) -> bool {
         row < self.rows && cols < self.cols
     }
 
+    #[inline]
     pub fn get(&self, coords: Coords) -> Option<&T> {
         if !self.contains(coords) {
             return None;
@@ -78,6 +87,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.get(self.calc_index(coords))
     }
 
+    #[inline]
     pub fn get_mut(&mut self, coords: Coords) -> Option<&mut T> {
         if !self.contains(coords) {
             return None;
@@ -88,6 +98,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     // TODO: Document unsafety
     #[allow(clippy::missing_safety_doc)]
+    #[inline]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
         debug_assert!(self.contains(coords));
         let ind = self.calc_index(coords);
@@ -96,20 +107,24 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     // TODO: Document unsafety
     #[allow(clippy::missing_safety_doc)]
+    #[inline]
     pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
         debug_assert!(self.contains(coords));
         let ind = self.calc_index(coords);
         self.buf.get_unchecked_mut(ind)
     }
 
+    #[inline]
     pub fn raw(&self) -> &[T] {
         &self.buf
     }
 
+    #[inline]
     pub fn raw_mut(&mut self) -> &mut [T] {
         &mut self.buf
     }
 
+    #[inline]
     pub fn each_iter(&self) -> impl Iterator<Item = (Coords, &T)> + ExactSizeIterator {
         let col_blocks = self.col_blocks();
         self.buf
@@ -119,6 +134,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
             .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
     }
 
+    #[inline]
     pub fn each_iter_mut(&mut self) -> impl Iterator<Item = (Coords, &mut T)> + ExactSizeIterator {
         let col_blocks = self.col_blocks();
         self.buf
@@ -127,18 +143,22 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
             .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
     }
 
+    #[inline]
     pub fn block_iter(&self) -> BlockIter<T, B> {
         BlockIter::new(self)
     }
 
+    #[inline]
     pub fn block_iter_mut(&mut self) -> BlockIterMut<T, B> {
         BlockIterMut::new(self)
     }
 
+    #[inline]
     pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
         RowMajorIter::new(self)
     }
 
+    #[inline]
     pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<T, B> {
         RowMajorIterMut::new(self)
     }
@@ -250,12 +270,14 @@ impl<T: Clone + Default, B: BlockDim> BlockGrid<T, B> {
 impl<T, B: BlockDim> Index<Coords> for BlockGrid<T, B> {
     type Output = T;
 
+    #[inline]
     fn index(&self, coords: Coords) -> &Self::Output {
         self.get(coords).expect("Index out of bounds")
     }
 }
 
 impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
+    #[inline]
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
         self.get_mut(coords).expect("Index out of bounds")
     }
@@ -271,10 +293,12 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
         }
     }
 
+    #[inline]
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
 
+    #[inline]
     pub fn get(&self, coords: Coords) -> Option<&T> {
         if !self.contains(coords) {
             return None;
@@ -284,6 +308,7 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
 
     // TODO: Document unsafety
     #[allow(clippy::missing_safety_doc)]
+    #[inline]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
         debug_assert!(self.contains(coords));
         self.arr.get_unchecked(self.calc_index(coords))
@@ -297,6 +322,7 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
 impl<'a, T, B: BlockDim> Index<Coords> for Block<'a, T, B> {
     type Output = T;
 
+    #[inline]
     fn index(&self, coords: Coords) -> &Self::Output {
         self.get(coords).expect("Index out of bounds")
     }
@@ -312,10 +338,12 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
         }
     }
 
+    #[inline]
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
 
+    #[inline]
     pub fn get(&self, coords: Coords) -> Option<&T> {
         if !self.contains(coords) {
             return None;
@@ -323,6 +351,7 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
         self.arr.get(self.calc_index(coords))
     }
 
+    #[inline]
     pub fn get_mut(&mut self, coords: Coords) -> Option<&mut T> {
         if !self.contains(coords) {
             return None;
@@ -331,12 +360,14 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
     }
 
     #[allow(clippy::missing_safety_doc)]
+    #[inline]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
         debug_assert!(self.contains(coords));
         self.arr.get_unchecked(self.calc_index(coords))
     }
 
     #[allow(clippy::missing_safety_doc)]
+    #[inline]
     pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
         debug_assert!(self.contains(coords));
         self.arr.get_unchecked_mut(self.calc_index(coords))
@@ -350,12 +381,14 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
 impl<'a, T, B: BlockDim> Index<Coords> for BlockMut<'a, T, B> {
     type Output = T;
 
+    #[inline]
     fn index(&self, coords: Coords) -> &Self::Output {
         self.get(coords).expect("Index out of bounds")
     }
 }
 
 impl<'a, T, B: BlockDim> IndexMut<Coords> for BlockMut<'a, T, B> {
+    #[inline]
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
         self.get_mut(coords).expect("Index out of bounds")
     }
