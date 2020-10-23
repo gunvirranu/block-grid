@@ -143,7 +143,7 @@ fn gen_each_iter_mut<B: BlockDim>() {
     assert_eq!(grid.each_iter_mut().count(), grid.size());
     let (row_blocks, col_blocks) = (grid.row_blocks(), grid.col_blocks());
     // Mutate while iterating
-    let mut it = grid.each_iter_mut();
+    let mut it = grid.each_iter_mut().coords();
     for bi in 0..row_blocks {
         for bj in 0..col_blocks {
             for si in 0..B::WIDTH {
