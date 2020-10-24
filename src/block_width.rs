@@ -7,13 +7,7 @@ pub trait BlockDim: Clone {
 }
 
 macro_rules! make_block_width [
-    ($($name: ident, $shift: literal);* $(;)*) => {
-
-        #[allow(non_snake_case)]
-        pub mod BlockWidth {
-            pub use super::{$($name,)*};
-        }
-
+    ($($name: ident, $shift: literal);*) => {
         $(
             #[derive(Clone, Copy, Debug)]
             pub struct $name;
@@ -34,5 +28,5 @@ make_block_width![
     U64,  6;
     U128, 7;
     U256, 8;
-    U512, 9;
+    U512, 9
 ];

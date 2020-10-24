@@ -5,7 +5,7 @@ use block_grid::*;
 use criterion::{black_box, criterion_group, criterion_main, Bencher, Criterion};
 
 type T = u8;
-type B = BlockWidth::U8;
+type B = U8;
 
 const ROWS: usize = 128;
 const COLS: usize = 256;

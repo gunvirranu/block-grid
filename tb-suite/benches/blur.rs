@@ -5,11 +5,11 @@ extern crate fastrand;
 extern crate tb_suite;
 
 use array2d::Array2D;
-use block_grid::{BlockGrid, BlockWidth};
+use block_grid::{BlockGrid, U8};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 use tb_suite::blur::*;
 
-type B = BlockWidth::U8;
+type B = U8;
 
 const ROWS: usize = 256;
 const COLS: usize = 128;
