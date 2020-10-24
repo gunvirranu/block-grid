@@ -1,6 +1,6 @@
 use std::vec::Vec;
 
-use crate::{BlockWidth::*, *};
+use crate::*;
 
 type BG<T, B> = BlockGrid<T, B>;
 

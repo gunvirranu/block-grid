@@ -4,7 +4,7 @@ extern crate fastrand;
 extern crate tb_suite;
 
 use array2d::Array2D;
-use block_grid::{BlockDim, BlockGrid, BlockWidth::*};
+use block_grid::*;
 use tb_suite::blur::*;
 
 fn gen_test_index<B: BlockDim>(rows: usize, cols: usize) {
