@@ -302,7 +302,7 @@ impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
 
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        if n > 1 {
+        if n >= 1 {
             self.iter.nth(n - 1)?;
         }
         self.next()
