@@ -61,12 +61,12 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     #[inline]
     pub fn row_blocks(&self) -> usize {
-        self.rows >> B::SHIFT
+        self.rows / B::WIDTH
     }
 
     #[inline]
     pub fn col_blocks(&self) -> usize {
-        self.cols >> B::SHIFT
+        self.cols / B::WIDTH
     }
 
     #[inline]
@@ -177,11 +177,11 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     fn calc_block(&self, (row, col): Coords) -> Coords {
-        (row >> B::SHIFT, col >> B::SHIFT)
+        (row / B::WIDTH, col / B::WIDTH)
     }
 
     fn calc_offset(&self, (row, col): Coords) -> Coords {
-        (row & B::MASK, col & B::MASK)
+        (row % B::WIDTH, col % B::WIDTH)
     }
 }
 
