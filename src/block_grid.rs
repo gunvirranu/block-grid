@@ -2,7 +2,7 @@ use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 
-use crate::iters::{BlockIter, BlockIterMut, RowMajorIter, RowMajorIterMut};
+use crate::iters::{BlockIter, BlockIterMut, EachIter, EachIterMut, RowMajorIter, RowMajorIterMut};
 use crate::{BlockDim, Coords};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -125,22 +125,13 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     #[inline]
-    pub fn each_iter(&self) -> impl Iterator<Item = (Coords, &T)> + ExactSizeIterator {
-        let col_blocks = self.col_blocks();
-        self.buf
-            .iter()
-            .enumerate()
-            // TODO: Bench against `EachIterCoords` adapter that holds state
-            .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
+    pub fn each_iter(&self) -> EachIter<T, B> {
+        EachIter::new(self)
     }
 
     #[inline]
-    pub fn each_iter_mut(&mut self) -> impl Iterator<Item = (Coords, &mut T)> + ExactSizeIterator {
-        let col_blocks = self.col_blocks();
-        self.buf
-            .iter_mut()
-            .enumerate()
-            .map(move |(ind, x)| (Self::mem_index_to_coords(ind, col_blocks), x))
+    pub fn each_iter_mut(&mut self) -> EachIterMut<T, B> {
+        EachIterMut::new(self)
     }
 
     #[inline]
@@ -191,15 +182,6 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 
     fn calc_offset(&self, (row, col): Coords) -> Coords {
         (row & B::MASK, col & B::MASK)
-    }
-
-    // Have to take `col_blocks` so `self` isn't aliased
-    fn mem_index_to_coords(ind: usize, col_blocks: usize) -> Coords {
-        let block = ind / B::AREA;
-        let intra_block = ind % B::AREA;
-        let row = B::WIDTH * (block / col_blocks) + (intra_block / B::WIDTH);
-        let col = B::WIDTH * (block % col_blocks) + (intra_block % B::WIDTH);
-        (row, col)
     }
 }
 

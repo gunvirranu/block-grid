@@ -1,7 +1,7 @@
 use core::iter::FusedIterator;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
-use core::slice::{ChunksExact, ChunksExactMut};
+use core::slice::{ChunksExact, ChunksExactMut, Iter, IterMut};
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
 
@@ -14,6 +14,22 @@ pub trait CoordsIterator: Iterator {
     {
         WithCoordsIter { iter: self }
     }
+}
+
+pub struct EachIter<'a, T, B: BlockDim> {
+    row: usize,
+    col: usize,
+    cols: usize,
+    iter: Iter<'a, T>,
+    _phantom: PhantomData<B>,
+}
+
+pub struct EachIterMut<'a, T, B: BlockDim> {
+    row: usize,
+    col: usize,
+    cols: usize,
+    iter: IterMut<'a, T>,
+    _phantom: PhantomData<B>,
 }
 
 pub struct BlockIter<'a, T, B: BlockDim> {
@@ -47,6 +63,88 @@ pub struct RowMajorIterMut<'a, T, B: BlockDim> {
 
 pub struct WithCoordsIter<I> {
     iter: I,
+}
+
+impl<'a, T, B: BlockDim> EachIter<'a, T, B> {
+    pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
+        Self {
+            row: 0,
+            col: 0,
+            cols: grid.cols(),
+            iter: grid.raw().iter(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<'a, T, B: BlockDim> CoordsIterator for EachIter<'a, T, B> {
+    #[inline]
+    fn current_coords(&self) -> Coords {
+        (self.row, self.col)
+    }
+}
+
+impl<'a, T, B: BlockDim> Iterator for EachIter<'a, T, B> {
+    type Item = &'a T;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.col += 1;
+        if self.col % B::WIDTH == 0 {
+            self.row += 1;
+            if self.row % B::WIDTH == 0 {
+                if self.col == self.cols {
+                    self.col = 0;
+                } else {
+                    self.row -= B::WIDTH;
+                }
+            } else {
+                self.col -= B::WIDTH;
+            }
+        }
+        self.iter.next()
+    }
+}
+
+impl<'a, T, B: BlockDim> EachIterMut<'a, T, B> {
+    pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
+        Self {
+            row: 0,
+            col: 0,
+            cols: grid.cols(),
+            iter: grid.raw_mut().iter_mut(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<'a, T, B: BlockDim> CoordsIterator for EachIterMut<'a, T, B> {
+    #[inline]
+    fn current_coords(&self) -> Coords {
+        (self.row, self.col)
+    }
+}
+
+impl<'a, T, B: BlockDim> Iterator for EachIterMut<'a, T, B> {
+    type Item = &'a mut T;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.col += 1;
+        if self.col % B::WIDTH == 0 {
+            self.row += 1;
+            if self.row % B::WIDTH == 0 {
+                if self.col == self.cols {
+                    self.col = 0;
+                } else {
+                    self.row -= B::WIDTH;
+                }
+            } else {
+                self.col -= B::WIDTH;
+            }
+        }
+        self.iter.next()
+    }
 }
 
 // TODO: See if I can use the anonymous lifetime `'_` everywhere here

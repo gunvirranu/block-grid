@@ -10,7 +10,7 @@ fn gen_from_raw_vec<B: BlockDim>() {
     let grid = BG::<_, B>::from_raw_vec(rows, cols, data.clone()).unwrap();
     assert_eq!((grid.rows(), grid.cols()), (rows, cols));
     assert_eq!(grid.size(), data.len());
-    for ((_, &x), &y) in grid.each_iter().zip(data.iter()) {
+    for (&x, &y) in grid.each_iter().zip(data.iter()) {
         assert_eq!(x, y);
     }
 }
@@ -20,7 +20,7 @@ fn gen_filled<B: BlockDim>() {
     let grid = BG::<_, B>::filled(rows, cols, 7).unwrap();
     assert_eq!((grid.rows(), grid.cols()), (rows, cols));
     assert_eq!(grid.size(), rows * cols);
-    for (_, &x) in grid.each_iter() {
+    for &x in grid.each_iter() {
         assert_eq!(x, 7);
     }
 }
@@ -121,7 +121,7 @@ fn gen_each_iter<B: BlockDim>() {
     let grid = BG::<_, B>::from_raw_vec(rows, cols, data).unwrap();
     assert_eq!(grid.each_iter().count(), grid.size());
 
-    let mut it = grid.each_iter();
+    let mut it = grid.each_iter().coords();
     for bi in 0..grid.row_blocks() {
         for bj in 0..grid.col_blocks() {
             for si in 0..B::WIDTH {
@@ -143,7 +143,7 @@ fn gen_each_iter_mut<B: BlockDim>() {
     assert_eq!(grid.each_iter_mut().count(), grid.size());
     let (row_blocks, col_blocks) = (grid.row_blocks(), grid.col_blocks());
     // Mutate while iterating
-    let mut it = grid.each_iter_mut();
+    let mut it = grid.each_iter_mut().coords();
     for bi in 0..row_blocks {
         for bj in 0..col_blocks {
             for si in 0..B::WIDTH {

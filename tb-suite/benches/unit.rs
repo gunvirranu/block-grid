@@ -88,17 +88,17 @@ fn iterators(c: &mut Criterion) {
     let grid = BlockGrid::<_, B>::from_raw_vec(ROWS, COLS, data).unwrap();
 
     let mut g = c.benchmark_group("Iterators");
-    g.bench_function("each_iter_no_coords", |b| {
+    g.bench_function("each_iter", |b| {
         b.iter(|| {
-            for (_, x) in grid.each_iter() {
+            for x in grid.each_iter() {
                 black_box(x);
             }
         })
     });
 
-    g.bench_function("each_iter", |b| {
+    g.bench_function("each_iter_coords", |b| {
         b.iter(|| {
-            for (c, x) in grid.each_iter() {
+            for (c, x) in grid.each_iter().coords() {
                 black_box((c, x));
             }
         })
