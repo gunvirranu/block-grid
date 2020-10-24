@@ -106,6 +106,8 @@ impl<'a, T, B: BlockDim> Iterator for EachIter<'a, T, B> {
     }
 }
 
+impl<'a, T, B: BlockDim> FusedIterator for EachIter<'a, T, B> {}
+
 impl<'a, T, B: BlockDim> EachIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
         Self {
@@ -146,6 +148,8 @@ impl<'a, T, B: BlockDim> Iterator for EachIterMut<'a, T, B> {
         self.iter.next()
     }
 }
+
+impl<'a, T, B: BlockDim> FusedIterator for EachIterMut<'a, T, B> {}
 
 // TODO: See if I can use the anonymous lifetime `'_` everywhere here
 impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
