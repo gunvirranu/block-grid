@@ -217,6 +217,23 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
         }
         self.chunks.next().map(Block::new)
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.chunks.size_hint()
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.chunks.count()
+    }
+}
+
+impl<'a, T, B: BlockDim> ExactSizeIterator for BlockIter<'a, T, B> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.chunks.len()
+    }
 }
 
 impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
@@ -249,6 +266,23 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
             self.block_col = 0;
         }
         self.chunks.next().map(BlockMut::new)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.chunks.size_hint()
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.chunks.count()
+    }
+}
+
+impl<'a, T, B: BlockDim> ExactSizeIterator for BlockIterMut<'a, T, B> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.chunks.len()
     }
 }
 
