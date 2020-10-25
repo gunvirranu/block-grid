@@ -104,6 +104,23 @@ impl<'a, T, B: BlockDim> Iterator for EachIter<'a, T, B> {
         }
         self.iter.next()
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+}
+
+impl<'a, T, B: BlockDim> ExactSizeIterator for EachIter<'a, T, B> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
 }
 
 impl<'a, T, B: BlockDim> FusedIterator for EachIter<'a, T, B> {}
@@ -146,6 +163,23 @@ impl<'a, T, B: BlockDim> Iterator for EachIterMut<'a, T, B> {
             }
         }
         self.iter.next()
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+}
+
+impl<'a, T, B: BlockDim> ExactSizeIterator for EachIterMut<'a, T, B> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.iter.len()
     }
 }
 
