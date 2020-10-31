@@ -236,6 +236,8 @@ impl<'a, T, B: BlockDim> ExactSizeIterator for BlockIter<'a, T, B> {
     }
 }
 
+impl<'a, T, B: BlockDim> FusedIterator for BlockIter<'a, T, B> {}
+
 impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
         Self {
@@ -285,6 +287,8 @@ impl<'a, T, B: BlockDim> ExactSizeIterator for BlockIterMut<'a, T, B> {
         self.chunks.len()
     }
 }
+
+impl<'a, T, B: BlockDim> FusedIterator for BlockIterMut<'a, T, B> {}
 
 impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
     pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
