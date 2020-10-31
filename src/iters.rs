@@ -214,7 +214,8 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
             self.block_row += 1;
             self.block_col = 0;
         }
-        self.chunks.next().map(Block::new)
+        // SAFETY: `self.chunks` gives slices of exactly `B::AREA` length
+        self.chunks.next().map(|x| unsafe { Block::new(x) })
     }
 
     #[inline]
@@ -266,7 +267,8 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
             self.block_row += 1;
             self.block_col = 0;
         }
-        self.chunks.next().map(BlockMut::new)
+        // SAFETY: `self.chunks` gives slices of exactly `B::AREA` length
+        self.chunks.next().map(|x| unsafe { BlockMut::new(x) })
     }
 
     #[inline]
