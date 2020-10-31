@@ -361,17 +361,43 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        // SAFETY: `self.grid` is a valid pointer
+        let (rows, cols) = unsafe {
+            let grid = self.grid.as_ref();
+            (grid.rows(), grid.cols())
+        };
+        if self.row >= rows {
+            return None;
+        }
         let c = (self.row, self.col);
         self.col += 1;
-        // SAFETY: `self.grid` is a valid pointer
-        if self.col == unsafe { self.grid.as_ref().cols() } {
+        if self.col == cols {
             self.row += 1;
             self.col = 0;
         }
+        // TODO: Can be unchecked
         // SAFETY: `self.grid` is a valid mutable pointer
         unsafe { &mut *self.grid.as_ptr() }.get_mut(c)
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        // SAFETY: `self.grid` is a valid pointer
+        let grid = unsafe { self.grid.as_ref() };
+        let idx = self.row * grid.cols() + self.col;
+        let k = grid.size() - idx;
+        (k, Some(k))
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.len()
+    }
 }
+
+impl<'a, T, B: BlockDim> ExactSizeIterator for RowMajorIterMut<'a, T, B> {}
+
+impl<'a, T, B: BlockDim> FusedIterator for RowMajorIterMut<'a, T, B> {}
 
 impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
     type Item = (Coords, I::Item);
