@@ -5,7 +5,9 @@ use core::slice::{ChunksExact, ChunksExactMut, Iter, IterMut};
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
 
-pub trait CoordsIterator: Iterator {
+// TODO: Mention that it's sealed
+pub trait CoordsIterator: Iterator + private::Sealed {
+    // TODO: Hide from documentation
     fn current_coords(&self) -> Coords;
 
     fn coords(self) -> WithCoordsIter<Self>
@@ -440,3 +442,15 @@ impl<I: CoordsIterator + ExactSizeIterator> ExactSizeIterator for WithCoordsIter
 }
 
 impl<I: CoordsIterator + FusedIterator> FusedIterator for WithCoordsIter<I> {}
+
+/// Prevent users from implementing the `CoordsIterator` trait.
+mod private {
+    use super::*;
+    pub trait Sealed {}
+    impl<T, B: BlockDim> Sealed for EachIter<'_, T, B> {}
+    impl<T, B: BlockDim> Sealed for EachIterMut<'_, T, B> {}
+    impl<T, B: BlockDim> Sealed for BlockIter<'_, T, B> {}
+    impl<T, B: BlockDim> Sealed for BlockIterMut<'_, T, B> {}
+    impl<T, B: BlockDim> Sealed for RowMajorIter<'_, T, B> {}
+    impl<T, B: BlockDim> Sealed for RowMajorIterMut<'_, T, B> {}
+}
