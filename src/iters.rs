@@ -77,7 +77,7 @@ impl<'a, T, B: BlockDim> EachIter<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> CoordsIterator for EachIter<'a, T, B> {
+impl<T, B: BlockDim> CoordsIterator for EachIter<'_, T, B> {
     #[inline]
     fn current_coords(&self) -> Coords {
         (self.row, self.col)
@@ -116,14 +116,14 @@ impl<'a, T, B: BlockDim> Iterator for EachIter<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> ExactSizeIterator for EachIter<'a, T, B> {
+impl<T, B: BlockDim> ExactSizeIterator for EachIter<'_, T, B> {
     #[inline]
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-impl<'a, T, B: BlockDim> FusedIterator for EachIter<'a, T, B> {}
+impl<T, B: BlockDim> FusedIterator for EachIter<'_, T, B> {}
 
 impl<'a, T, B: BlockDim> EachIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
@@ -137,7 +137,7 @@ impl<'a, T, B: BlockDim> EachIterMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> CoordsIterator for EachIterMut<'a, T, B> {
+impl<T, B: BlockDim> CoordsIterator for EachIterMut<'_, T, B> {
     #[inline]
     fn current_coords(&self) -> Coords {
         (self.row, self.col)
@@ -176,16 +176,15 @@ impl<'a, T, B: BlockDim> Iterator for EachIterMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> ExactSizeIterator for EachIterMut<'a, T, B> {
+impl<T, B: BlockDim> ExactSizeIterator for EachIterMut<'_, T, B> {
     #[inline]
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-impl<'a, T, B: BlockDim> FusedIterator for EachIterMut<'a, T, B> {}
+impl<T, B: BlockDim> FusedIterator for EachIterMut<'_, T, B> {}
 
-// TODO: See if I can use the anonymous lifetime `'_` everywhere here
 impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
     pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
         Self {
@@ -198,7 +197,7 @@ impl<'a, T, B: BlockDim> BlockIter<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> CoordsIterator for BlockIter<'a, T, B> {
+impl<T, B: BlockDim> CoordsIterator for BlockIter<'_, T, B> {
     #[inline]
     fn current_coords(&self) -> Coords {
         (self.block_row, self.block_col)
@@ -229,14 +228,14 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> ExactSizeIterator for BlockIter<'a, T, B> {
+impl<T, B: BlockDim> ExactSizeIterator for BlockIter<'_, T, B> {
     #[inline]
     fn len(&self) -> usize {
         self.chunks.len()
     }
 }
 
-impl<'a, T, B: BlockDim> FusedIterator for BlockIter<'a, T, B> {}
+impl<T, B: BlockDim> FusedIterator for BlockIter<'_, T, B> {}
 
 impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
@@ -250,7 +249,7 @@ impl<'a, T, B: BlockDim> BlockIterMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> CoordsIterator for BlockIterMut<'a, T, B> {
+impl<T, B: BlockDim> CoordsIterator for BlockIterMut<'_, T, B> {
     #[inline]
     fn current_coords(&self) -> Coords {
         (self.block_row, self.block_col)
@@ -281,14 +280,14 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> ExactSizeIterator for BlockIterMut<'a, T, B> {
+impl<T, B: BlockDim> ExactSizeIterator for BlockIterMut<'_, T, B> {
     #[inline]
     fn len(&self) -> usize {
         self.chunks.len()
     }
 }
 
-impl<'a, T, B: BlockDim> FusedIterator for BlockIterMut<'a, T, B> {}
+impl<T, B: BlockDim> FusedIterator for BlockIterMut<'_, T, B> {}
 
 impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
     pub(crate) fn new(grid: &'a BlockGrid<T, B>) -> Self {
@@ -300,7 +299,7 @@ impl<'a, T, B: BlockDim> RowMajorIter<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIter<'a, T, B> {
+impl<T, B: BlockDim> CoordsIterator for RowMajorIter<'_, T, B> {
     #[inline]
     fn current_coords(&self) -> Coords {
         (self.row, self.col)
@@ -338,9 +337,9 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> ExactSizeIterator for RowMajorIter<'a, T, B> {}
+impl<T, B: BlockDim> ExactSizeIterator for RowMajorIter<'_, T, B> {}
 
-impl<'a, T, B: BlockDim> FusedIterator for RowMajorIter<'a, T, B> {}
+impl<T, B: BlockDim> FusedIterator for RowMajorIter<'_, T, B> {}
 
 impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
@@ -353,7 +352,7 @@ impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> CoordsIterator for RowMajorIterMut<'a, T, B> {
+impl<T, B: BlockDim> CoordsIterator for RowMajorIterMut<'_, T, B> {
     #[inline]
     fn current_coords(&self) -> Coords {
         (self.row, self.col)
@@ -399,9 +398,9 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
     }
 }
 
-impl<'a, T, B: BlockDim> ExactSizeIterator for RowMajorIterMut<'a, T, B> {}
+impl<T, B: BlockDim> ExactSizeIterator for RowMajorIterMut<'_, T, B> {}
 
-impl<'a, T, B: BlockDim> FusedIterator for RowMajorIterMut<'a, T, B> {}
+impl<T, B: BlockDim> FusedIterator for RowMajorIterMut<'_, T, B> {}
 
 impl<I: CoordsIterator> Iterator for WithCoordsIter<I> {
     type Item = (Coords, I::Item);
