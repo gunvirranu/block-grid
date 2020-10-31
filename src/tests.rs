@@ -244,14 +244,19 @@ fn gen_row_major_iter<B: BlockDim>() {
     assert_eq!(grid.row_major_iter().count(), grid.size());
 
     let mut it = grid.row_major_iter().coords();
+    let mut n_left = rows * cols;
     for i in 0..rows {
         for j in 0..cols {
+            assert_eq!(it.len(), n_left);
             let (c, &e) = it.next().unwrap();
             assert_eq!(c, (i, j));
             assert_eq!(e, grid[(i, j)]);
+            n_left -= 1;
         }
     }
+    assert_eq!(it.len(), 0);
     assert!(it.next().is_none());
+    assert_eq!(it.len(), 0);
 }
 
 fn gen_row_major_iter_mut<B: BlockDim>() {

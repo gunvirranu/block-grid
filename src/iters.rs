@@ -308,15 +308,35 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        if self.row >= self.grid.rows() {
+            return None;
+        }
         let c = (self.row, self.col);
         self.col += 1;
         if self.col == self.grid.cols() {
             self.row += 1;
             self.col = 0;
         }
+        // TODO: Can make unchecked
         self.grid.get(c)
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let idx = self.row * self.grid.cols() + self.col;
+        let k = self.grid.size() - idx;
+        (k, Some(k))
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.len()
+    }
 }
+
+impl<'a, T, B: BlockDim> ExactSizeIterator for RowMajorIter<'a, T, B> {}
+
+impl<'a, T, B: BlockDim> FusedIterator for RowMajorIter<'a, T, B> {}
 
 impl<'a, T, B: BlockDim> RowMajorIterMut<'a, T, B> {
     pub(crate) fn new(grid: &'a mut BlockGrid<T, B>) -> Self {
