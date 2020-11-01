@@ -18,6 +18,7 @@ pub trait CoordsIterator: Iterator + private::Sealed {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct EachIter<'a, T, B: BlockDim> {
     row: usize,
     col: usize,
@@ -26,6 +27,7 @@ pub struct EachIter<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+#[derive(Debug)]
 pub struct EachIterMut<'a, T, B: BlockDim> {
     row: usize,
     col: usize,
@@ -34,6 +36,7 @@ pub struct EachIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+#[derive(Clone, Debug)]
 pub struct BlockIter<'a, T, B: BlockDim> {
     block_row: usize,
     block_col: usize,
@@ -42,6 +45,7 @@ pub struct BlockIter<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+#[derive(Debug)]
 pub struct BlockIterMut<'a, T, B: BlockDim> {
     block_row: usize,
     block_col: usize,
@@ -50,12 +54,14 @@ pub struct BlockIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+#[derive(Clone, Debug)]
 pub struct RowMajorIter<'a, T, B: BlockDim> {
     row: usize,
     col: usize,
     grid: &'a BlockGrid<T, B>,
 }
 
+#[derive(Debug)]
 pub struct RowMajorIterMut<'a, T, B: BlockDim> {
     row: usize,
     col: usize,
@@ -63,6 +69,7 @@ pub struct RowMajorIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
 }
 
+#[derive(Clone, Debug)]
 pub struct WithCoordsIter<I> {
     iter: I,
 }
