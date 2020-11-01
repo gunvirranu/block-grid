@@ -24,7 +24,7 @@
 ## Example
 
 ```rust
-use block_grid::{BlockGrid, BlockWidth::U2};
+use block_grid::{BlockGrid, CoordsIterator, U2};
 
 fn main() {
     let data: Vec<_> = (0..(4 * 6)).collect();
