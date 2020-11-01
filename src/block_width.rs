@@ -9,7 +9,7 @@ pub trait BlockDim: Clone {
 macro_rules! make_block_width [
     ($($name: ident, $shift: literal);*) => {
         $(
-            #[derive(Clone, Copy, Debug)]
+            #[derive(Clone, Copy, Debug, Eq, PartialEq)]
             pub struct $name;
 
             impl BlockDim for $name {
