@@ -1,11 +1,16 @@
 [package]
 name = "block-grid"
 version = "0.1.0"
-authors = ["Gunvir Ranu <g1ranu@gmail.com>"]
-description = "A quick, cache-conscious tiled 2D array."
+authors = ["Gunvir Ranu <mail@gunvirranu.com>"]
+description = "A quick, cache-conscious, tiled 2D array."
 edition = "2018"
 license = "MIT"
-publish = false
+readme = "README.md"
+homepage = "https://github.com/gunvirranu/block-grid"
+repository = "https://github.com/gunvirranu/block-grid"
+categories = ["data-structures", "no-std", "memory-management"]
+keywords = ["array", "grid", "2d", "matrix"]
+exclude = ["/.github/"]
 
 [lib]
 bench = false
