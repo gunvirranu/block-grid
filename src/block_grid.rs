@@ -13,8 +13,7 @@ pub struct BlockGrid<T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
-// TODO: Figure out how `PartialEq`/`Eq` should work
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Block<'a, T, B: BlockDim> {
     arr: &'a [T],
     _phantom: PhantomData<B>,
