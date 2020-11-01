@@ -4,8 +4,9 @@
 
 #### A quick, cache-conscious, blocked 2D array
 
-[![CI][ci_badge]][ci]
+[![Crate][crate_badge]][crate]
 [![License][license_badge]][license]
+[![CI][ci_badge]][ci]
 
 </div>
 
@@ -78,7 +79,7 @@ TODO: Stuff about caches
 
 ## Changelog
 
-TODO: Point to `CHANGELOG.md` when created
+See [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 
@@ -96,6 +97,8 @@ If your access patterns suit a typical row-major memory representation, check ou
 [nalgebra]: https://nalgebra.org "nalgebra"
 
 <!-- Badges -->
+[crate]: https://crates.io/crates/block-grid "Crate"
+[crate_badge]: https://img.shields.io/crates/v/block-grid?logo=rust "Crate"
 [ci]: https://github.com/gunvirranu/block-grid/actions "Github Actions"
 [ci_badge]: https://github.com/gunvirranu/block-grid/workflows/CI/badge.svg?branch=master "Github Actions"
 [license]: #license "License"
