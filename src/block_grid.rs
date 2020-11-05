@@ -86,7 +86,8 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         if !self.contains(coords) {
             return None;
         }
-        self.buf.get(self.calc_index(coords))
+        // SAFETY: `coords` is a valid index
+        Some(unsafe { self.get_unchecked(coords) })
     }
 
     #[inline]
@@ -94,8 +95,8 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         if !self.contains(coords) {
             return None;
         }
-        let ind = self.calc_index(coords);
-        self.buf.get_mut(ind)
+        // SAFETY: `coords` is a valid index
+        Some(unsafe { self.get_unchecked_mut(coords) })
     }
 
     // TODO: Document unsafety
