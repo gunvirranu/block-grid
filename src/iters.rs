@@ -325,14 +325,14 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIter<'a, T, B> {
         if self.row >= self.grid.rows() {
             return None;
         }
-        let c = (self.row, self.col);
+        // SAFETY: Method logic ensures `(self.row, self.col)` is a valid index
+        let x = unsafe { self.grid.get_unchecked((self.row, self.col)) };
         self.col += 1;
         if self.col == self.grid.cols() {
             self.row += 1;
             self.col = 0;
         }
-        // TODO: Can make unchecked
-        self.grid.get(c)
+        Some(x)
     }
 
     #[inline]
@@ -383,15 +383,15 @@ impl<'a, T, B: BlockDim> Iterator for RowMajorIterMut<'a, T, B> {
         if self.row >= rows {
             return None;
         }
-        let c = (self.row, self.col);
+        // SAFETY: `self.grid` is a valid mutable pointer and method logic ensures
+        //         `(self.row, self.col)` is a valid index
+        let x = unsafe { (&mut *self.grid.as_ptr()).get_unchecked_mut((self.row, self.col)) };
         self.col += 1;
         if self.col == cols {
             self.row += 1;
             self.col = 0;
         }
-        // TODO: Can be unchecked
-        // SAFETY: `self.grid` is a valid mutable pointer
-        unsafe { &mut *self.grid.as_ptr() }.get_mut(c)
+        Some(x)
     }
 
     #[inline]
