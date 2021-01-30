@@ -176,6 +176,8 @@ fn gen_block_iter<B: BlockDim>() {
     let (mut bi, mut bj): Coords = (0, 0);
     for (c, block) in grid.block_iter().coords() {
         assert_eq!(c, (bi, bj));
+        assert_eq!(block.coords(), c);
+        assert_eq!(block.starts_at(), (B::WIDTH * bi, B::WIDTH * bj));
         for si in 0..B::WIDTH {
             for sj in 0..B::WIDTH {
                 assert_eq!(
@@ -205,6 +207,8 @@ fn gen_block_iter_mut<B: BlockDim>() {
     let (mut bi, mut bj): Coords = (0, 0);
     for (c, mut block) in grid.block_iter_mut().coords() {
         assert_eq!(c, (bi, bj));
+        assert_eq!(block.coords(), c);
+        assert_eq!(block.starts_at(), (B::WIDTH * bi, B::WIDTH * bj));
         for si in 0..B::WIDTH {
             for sj in 0..B::WIDTH {
                 assert_eq!(block[(si, sj)], 7);
