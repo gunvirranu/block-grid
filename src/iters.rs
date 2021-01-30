@@ -218,13 +218,15 @@ impl<'a, T, B: BlockDim> Iterator for BlockIter<'a, T, B> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        let chunk = self.chunks.next()?;
+        // SAFETY: `self.chunks` gives slices of exactly `B::AREA` length
+        let block = unsafe { Block::new(self.current_coords(), chunk) };
         self.block_col += 1;
         if self.block_col == self.col_blocks {
             self.block_row += 1;
             self.block_col = 0;
         }
-        // SAFETY: `self.chunks` gives slices of exactly `B::AREA` length
-        self.chunks.next().map(|x| unsafe { Block::new(x) })
+        Some(block)
     }
 
     #[inline]
@@ -271,13 +273,15 @@ impl<'a, T, B: BlockDim> Iterator for BlockIterMut<'a, T, B> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        let chunk = self.chunks.next()?;
+        // SAFETY: `self.chunks` gives slices of exactly `B::AREA` length
+        let block = unsafe { BlockMut::new(self.current_coords(), chunk) };
         self.block_col += 1;
         if self.block_col == self.col_blocks {
             self.block_row += 1;
             self.block_col = 0;
         }
-        // SAFETY: `self.chunks` gives slices of exactly `B::AREA` length
-        self.chunks.next().map(|x| unsafe { BlockMut::new(x) })
+        Some(block)
     }
 
     #[inline]
