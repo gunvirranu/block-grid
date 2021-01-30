@@ -18,12 +18,14 @@ pub struct BlockGrid<T, B: BlockDim> {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Block<'a, T, B: BlockDim> {
+    block_coords: Coords,
     arr: &'a [T],
     _phantom: PhantomData<B>,
 }
 
 #[derive(Debug)]
 pub struct BlockMut<'a, T, B: BlockDim> {
+    block_coords: Coords,
     arr: &'a mut [T],
     _phantom: PhantomData<B>,
 }
@@ -269,13 +271,25 @@ impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
 }
 
 impl<'a, T, B: BlockDim> Block<'a, T, B> {
-    // `arr` **must** be of length `B::AREA`
-    pub(crate) unsafe fn new(arr: &'a [T]) -> Self {
+    // `block_coords` **must** be valid and `arr` **must** be of length `B::AREA`
+    pub(crate) unsafe fn new(block_coords: Coords, arr: &'a [T]) -> Self {
         debug_assert_eq!(arr.len(), B::AREA);
         Self {
+            block_coords,
             arr,
             _phantom: PhantomData,
         }
+    }
+
+    #[inline]
+    pub fn coords(&self) -> Coords {
+        self.block_coords
+    }
+
+    #[inline]
+    pub fn starts_at(&self) -> Coords {
+        let (b_row, b_col) = self.block_coords;
+        (B::WIDTH * b_row, B::WIDTH * b_col)
     }
 
     #[inline]
@@ -315,13 +329,25 @@ impl<'a, T, B: BlockDim> Index<Coords> for Block<'a, T, B> {
 }
 
 impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
-    // `arr` **must** be of length `B::AREA`
-    pub(crate) unsafe fn new(arr: &'a mut [T]) -> Self {
+    // `block_coords` **must** be valid and `arr` **must** be of length `B::AREA`
+    pub(crate) unsafe fn new(block_coords: Coords, arr: &'a mut [T]) -> Self {
         debug_assert_eq!(arr.len(), B::AREA);
         Self {
+            block_coords,
             arr,
             _phantom: PhantomData,
         }
+    }
+
+    #[inline]
+    pub fn coords(&self) -> Coords {
+        self.block_coords
+    }
+
+    #[inline]
+    pub fn starts_at(&self) -> Coords {
+        let (b_row, b_col) = self.block_coords;
+        (B::WIDTH * b_row, B::WIDTH * b_col)
     }
 
     #[inline]
