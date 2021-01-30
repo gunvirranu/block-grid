@@ -1,3 +1,6 @@
+// FIXME: Fix and remove eventally
+#![allow(clippy::result_unit_err)]
+
 use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
