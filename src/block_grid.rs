@@ -130,32 +130,32 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     #[inline]
-    pub fn each_iter(&self) -> EachIter<T, B> {
+    pub fn each_iter(&self) -> EachIter<'_, T, B> {
         EachIter::new(self)
     }
 
     #[inline]
-    pub fn each_iter_mut(&mut self) -> EachIterMut<T, B> {
+    pub fn each_iter_mut(&mut self) -> EachIterMut<'_, T, B> {
         EachIterMut::new(self)
     }
 
     #[inline]
-    pub fn block_iter(&self) -> BlockIter<T, B> {
+    pub fn block_iter(&self) -> BlockIter<'_, T, B> {
         BlockIter::new(self)
     }
 
     #[inline]
-    pub fn block_iter_mut(&mut self) -> BlockIterMut<T, B> {
+    pub fn block_iter_mut(&mut self) -> BlockIterMut<'_, T, B> {
         BlockIterMut::new(self)
     }
 
     #[inline]
-    pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
+    pub fn row_major_iter(&self) -> RowMajorIter<'_, T, B> {
         RowMajorIter::new(self)
     }
 
     #[inline]
-    pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<T, B> {
+    pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<'_, T, B> {
         RowMajorIterMut::new(self)
     }
 
