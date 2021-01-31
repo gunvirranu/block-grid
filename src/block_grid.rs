@@ -19,6 +19,9 @@ pub struct BlockGrid<T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+/// A view of a 2D block contiguous in memory.
+///
+/// Can be obtained via [`BlockIter`], which is created by calling [`BlockGrid::block_iter`].
 #[derive(Clone, Copy, Debug)]
 pub struct Block<'a, T, B: BlockDim> {
     block_coords: Coords,
@@ -361,7 +364,11 @@ impl<T, B: BlockDim> IndexMut<Coords> for BlockGrid<T, B> {
 }
 
 impl<'a, T, B: BlockDim> Block<'a, T, B> {
-    // `block_coords` **must** be valid and `arr` **must** be of length `B::AREA`
+    /// Constructs a `Block<'a, T, B>` from an array slice.
+    ///
+    /// # Safety
+    ///
+    /// `block_coords` *must* be valid and `arr` *must* be of length `B::AREA`.
     pub(crate) unsafe fn new(block_coords: Coords, arr: &'a [T]) -> Self {
         debug_assert_eq!(arr.len(), B::AREA);
         Self {
@@ -371,22 +378,33 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
         }
     }
 
+    /// Returns the coordinates of the entire block.
+    ///
+    /// Block coordinates mean that the `(i, j)` refers to the `i`-th *row of blocks* and the
+    /// `j`-th block in that row. If you need the coordinates of the first (top-left) element,
+    /// use [`starts_at`] instead.
+    ///
+    /// [`starts_at`]: Self::starts_at
     #[inline]
     pub fn coords(&self) -> Coords {
         self.block_coords
     }
 
+    /// Returns the coordinates of the first (top-left) element in the block.
     #[inline]
     pub fn starts_at(&self) -> Coords {
         let (b_row, b_col) = self.block_coords;
         (B::WIDTH * b_row, B::WIDTH * b_col)
     }
 
+    /// Returns `true` if the given coordinates are valid.
     #[inline]
     pub fn contains(&self, (row, col): Coords) -> bool {
         row < B::WIDTH && col < B::WIDTH
     }
 
+    /// Returns a reference to the element at the given coordinates, or [`None`] if they are
+    /// out-of-bounds.
     #[inline]
     pub fn get(&self, coords: Coords) -> Option<&T> {
         if !self.contains(coords) {
@@ -396,14 +414,18 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
         Some(unsafe { self.get_unchecked(coords) })
     }
 
-    // TODO: Document unsafety
-    #[allow(clippy::missing_safety_doc)]
+    /// Returns a reference to the element at the given coordinates, without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method with out-of-bounds coordinates is *undefined-behaviour*.
     #[inline]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
         debug_assert!(self.contains(coords));
         self.arr.get_unchecked(self.calc_index(coords))
     }
 
+    /// Returns the 1D memory index calculated from 2D coordinates.
     fn calc_index(&self, (row, col): Coords) -> usize {
         B::WIDTH * row + col
     }
