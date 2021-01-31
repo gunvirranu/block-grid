@@ -130,32 +130,32 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     }
 
     #[inline]
-    pub fn each_iter(&self) -> EachIter<T, B> {
+    pub fn each_iter(&self) -> EachIter<'_, T, B> {
         EachIter::new(self)
     }
 
     #[inline]
-    pub fn each_iter_mut(&mut self) -> EachIterMut<T, B> {
+    pub fn each_iter_mut(&mut self) -> EachIterMut<'_, T, B> {
         EachIterMut::new(self)
     }
 
     #[inline]
-    pub fn block_iter(&self) -> BlockIter<T, B> {
+    pub fn block_iter(&self) -> BlockIter<'_, T, B> {
         BlockIter::new(self)
     }
 
     #[inline]
-    pub fn block_iter_mut(&mut self) -> BlockIterMut<T, B> {
+    pub fn block_iter_mut(&mut self) -> BlockIterMut<'_, T, B> {
         BlockIterMut::new(self)
     }
 
     #[inline]
-    pub fn row_major_iter(&self) -> RowMajorIter<T, B> {
+    pub fn row_major_iter(&self) -> RowMajorIter<'_, T, B> {
         RowMajorIter::new(self)
     }
 
     #[inline]
-    pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<T, B> {
+    pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<'_, T, B> {
         RowMajorIterMut::new(self)
     }
 
@@ -163,30 +163,15 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
     }
 
-    fn calc_index(&self, coords: Coords) -> usize {
+    fn calc_index(&self, (row, col): Coords) -> usize {
         // Get block
-        let block_coords = self.calc_block(coords);
-        let block_ind = self.calc_block_index(block_coords);
+        let (b_row, b_col) = (row / B::WIDTH, col / B::WIDTH);
+        // TODO: Try caching `col_blocks` as struct field for potential speedup?
+        let block_ind = B::AREA * (self.col_blocks() * b_row + b_col);
         // Offset within block
-        let sub_coords = self.calc_offset(coords);
-        let sub_ind = self.calc_sub_index(sub_coords);
+        let (s_row, s_col) = (row % B::WIDTH, col % B::WIDTH);
+        let sub_ind = B::WIDTH * s_row + s_col;
         block_ind + sub_ind
-    }
-
-    fn calc_block_index(&self, (b_row, b_col): Coords) -> usize {
-        B::AREA * (self.col_blocks() * b_row + b_col)
-    }
-
-    fn calc_sub_index(&self, (s_row, s_col): Coords) -> usize {
-        B::WIDTH * s_row + s_col
-    }
-
-    fn calc_block(&self, (row, col): Coords) -> Coords {
-        (row / B::WIDTH, col / B::WIDTH)
-    }
-
-    fn calc_offset(&self, (row, col): Coords) -> Coords {
-        (row % B::WIDTH, col % B::WIDTH)
     }
 }
 
@@ -235,9 +220,6 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
                         let ind = calc_index(row, col);
                         // There's no 'simple' way to do this without `Clone`,
                         // because `elems` can't be easily drained out of order.
-                        // TODO: Investigate a possible, but reallyy unsafe
-                        //       method to memcpy elements out of `Vec`, and
-                        //       then don't drop them when `Vec` is dropped.
                         grid.buf.push(elems[ind].clone());
                     }
                 }
@@ -397,13 +379,13 @@ impl<'a, T, B: BlockDim> Index<Coords> for BlockMut<'a, T, B> {
 
     #[inline]
     fn index(&self, coords: Coords) -> &Self::Output {
-        self.get(coords).expect("Index out of bounds")
+        self.get(coords).expect("Coordinates out of bounds")
     }
 }
 
 impl<'a, T, B: BlockDim> IndexMut<Coords> for BlockMut<'a, T, B> {
     #[inline]
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
-        self.get_mut(coords).expect("Index out of bounds")
+        self.get_mut(coords).expect("Coordinates out of bounds")
     }
 }

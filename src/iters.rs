@@ -98,6 +98,7 @@ impl<'a, T, B: BlockDim> Iterator for EachIter<'a, T, B> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        // TODO: Try out bitwise ops for potential speedup?
         self.col += 1;
         if self.col % B::WIDTH == 0 {
             self.row += 1;
