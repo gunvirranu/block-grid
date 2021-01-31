@@ -8,6 +8,9 @@ use core::ops::{Index, IndexMut};
 use crate::iters::{BlockIter, BlockIterMut, EachIter, EachIterMut, RowMajorIter, RowMajorIterMut};
 use crate::{BlockDim, Coords};
 
+/// A fixed-size 2D array with a blocked memory representation.
+///
+/// See [crate-level documentation][crate] for general usage info.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct BlockGrid<T, B: BlockDim> {
     rows: usize,
@@ -31,6 +34,14 @@ pub struct BlockMut<'a, T, B: BlockDim> {
 }
 
 impl<T, B: BlockDim> BlockGrid<T, B> {
+    /// Constructs a `BlockGrid<T, B>` by consuming a [`Vec<T>`].
+    ///
+    /// The ordering of the memory is taken as is in the vector.
+    ///
+    /// # Errors
+    ///
+    /// If invalid dimensions, either because `rows` and `cols` do not divide evenly into the block
+    /// size `B` or the length of `elems` does not match `rows * cols`.
     pub fn from_raw_vec(rows: usize, cols: usize, elems: Vec<T>) -> Result<Self, ()> {
         if !Self::valid_size(rows, cols) || rows * cols != elems.len() {
             return Err(());
@@ -43,46 +54,56 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         })
     }
 
+    /// Converts a `BlockGrid<T, B>` to a [`Vec<T>`] in memory order.
     #[inline]
     pub fn take_raw_vec(self) -> Vec<T> {
         self.buf
     }
 
+    /// Returns the nuumber of rows.
     #[inline]
     pub fn rows(&self) -> usize {
         self.rows
     }
 
+    /// Returns the number of columns.
     #[inline]
     pub fn cols(&self) -> usize {
         self.cols
     }
 
+    /// Returns the number of elements.
     #[inline]
     pub fn size(&self) -> usize {
         self.rows() * self.cols()
     }
 
+    /// Returns the number of blocks in the vertical direction.
     #[inline]
     pub fn row_blocks(&self) -> usize {
         self.rows / B::WIDTH
     }
 
+    /// Returns the number of blocks in the horizontal direction.
     #[inline]
     pub fn col_blocks(&self) -> usize {
         self.cols / B::WIDTH
     }
 
+    /// Returns the total number of blocks.
     #[inline]
     pub fn blocks(&self) -> usize {
         self.row_blocks() * self.col_blocks()
     }
 
+    /// Returns `true` if the given coordinates are valid.
     #[inline]
-    pub fn contains(&self, (row, cols): Coords) -> bool {
-        row < self.rows && cols < self.cols
+    pub fn contains(&self, (row, col): Coords) -> bool {
+        row < self.rows && col < self.cols
     }
 
+    /// Returns a reference to the element at the given coordinates, or [`None`] if they are
+    /// out-of-bounds.
     #[inline]
     pub fn get(&self, coords: Coords) -> Option<&T> {
         if !self.contains(coords) {
@@ -92,6 +113,8 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         Some(unsafe { self.get_unchecked(coords) })
     }
 
+    /// Returns a mutable reference to the element at the given coordinates, or [`None`] if they
+    /// are out-of-bounds.
     #[inline]
     pub fn get_mut(&mut self, coords: Coords) -> Option<&mut T> {
         if !self.contains(coords) {
@@ -101,8 +124,11 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         Some(unsafe { self.get_unchecked_mut(coords) })
     }
 
-    // TODO: Document unsafety
-    #[allow(clippy::missing_safety_doc)]
+    /// Returns a reference to the element at the given coordinates, without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method with out-of-bounds coordinates is *undefined-behaviour*.
     #[inline]
     pub unsafe fn get_unchecked(&self, coords: Coords) -> &T {
         debug_assert!(self.contains(coords));
@@ -110,8 +136,12 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.get_unchecked(ind)
     }
 
-    // TODO: Document unsafety
-    #[allow(clippy::missing_safety_doc)]
+    /// Returns a mutable reference to the element at the given coordinates, without bounds
+    /// checking.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method with out-of-bounds coordinates is *undefined-behaviour*.
     #[inline]
     pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
         debug_assert!(self.contains(coords));
@@ -119,50 +149,97 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.get_unchecked_mut(ind)
     }
 
+    /// Borrow `BlockGrid<T, B>` as a slice in memory order.
     #[inline]
     pub fn raw(&self) -> &[T] {
         &self.buf
     }
 
+    /// Mutably borrow `BlockGrid<T, B>` as a mutable slice in memory order.
     #[inline]
     pub fn raw_mut(&mut self) -> &mut [T] {
         &mut self.buf
     }
 
+    /// Returns an iterator over all the elements in memory order.
+    ///
+    /// If you wanna visit each element arbitrarily, this would be the best way. If you also need
+    /// coordinates while iterating, follow up with a chained [`.coords()`][coords] call.
+    ///
+    /// [coords]: crate::CoordsIterator::coords()
     #[inline]
     pub fn each_iter(&self) -> EachIter<'_, T, B> {
         EachIter::new(self)
     }
 
+    /// Returns a mutable iterator over all the elements in memory order.
+    ///
+    /// If you wanna mutably visit each element arbitrarily, this would be the best way. If you
+    /// also need coordinates while iterating, follow up with a chained [`.coords()`][coords] call.
+    ///
+    /// [coords]: crate::CoordsIterator::coords()
     #[inline]
     pub fn each_iter_mut(&mut self) -> EachIterMut<'_, T, B> {
         EachIterMut::new(self)
     }
 
+    /// Returns an iterator over all blocks in memory order, yielding [`Block`]s.
+    ///
+    /// If you need the block coordinates while iterating, follow up with a chained
+    /// [`.coords()`][coords] call. In this case, note that the 2D coordinates yielded are of the
+    /// actual entire block. If you instead need the coordinates of the first (top-left) element
+    /// in the block, see [`Block::starts_at`].
+    ///
+    /// [coords]: crate::CoordsIterator::coords()
     #[inline]
     pub fn block_iter(&self) -> BlockIter<'_, T, B> {
         BlockIter::new(self)
     }
 
+    /// Returns a mutable iterator over all blocks in memory order, yielding [`BlockMut`]s.
+    ///
+    /// If you need the block coordinates while iterating, follow up with a chained
+    /// [`.coords()`][coords] call. In this case, note that the 2D coordinates yielded are of the
+    /// actual entire block. If you instead need the coordinates of the first (top-left) element
+    /// in the block, see [`BlockMut::starts_at`].
+    ///
+    /// [coords]: crate::CoordsIterator::coords()
     #[inline]
     pub fn block_iter_mut(&mut self) -> BlockIterMut<'_, T, B> {
         BlockIterMut::new(self)
     }
 
+    /// Returns an iterator over all the elements in [row-major order][row_major].
+    ///
+    /// This ordering is what you're probably used to with usual 2D arrays. This method may be
+    /// useful for converting between array types or general IO. If you also need the coordinates
+    /// while iterating, follow up with a chained [`.coords()`][coords] call.
+    ///
+    /// [row_major]: https://en.wikipedia.org/wiki/Row-_and_column-major_order
+    /// [coords]: crate::CoordsIterator::coords()
     #[inline]
     pub fn row_major_iter(&self) -> RowMajorIter<'_, T, B> {
         RowMajorIter::new(self)
     }
 
+    /// Returns an mutable iterator over all the elements in [row-major order][row_major].
+    ///
+    /// If you also need the coordinates while iterating, follow up with a chained
+    /// [`.coords()`][coords] call.
+    ///
+    /// [row_major]: https://en.wikipedia.org/wiki/Row-_and_column-major_order
+    /// [coords]: crate::CoordsIterator::coords()
     #[inline]
     pub fn row_major_iter_mut(&mut self) -> RowMajorIterMut<'_, T, B> {
         RowMajorIterMut::new(self)
     }
 
+    /// Returns `true` if `rows` and `cols` form a valid sized `BlockGrid<T, B>`.
     fn valid_size(rows: usize, cols: usize) -> bool {
         rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
     }
 
+    /// Returns the 1D memory index calculated from 2D coordinates.
     fn calc_index(&self, (row, col): Coords) -> usize {
         // Get block
         let (b_row, b_col) = (row / B::WIDTH, col / B::WIDTH);
@@ -176,6 +253,11 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
 }
 
 impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
+    /// Constructs a `BlockGrid<T, B>` by filling with a single element.
+    ///
+    /// # Errors
+    ///
+    /// If  `rows` and `cols` do not divide evenly into the block size `B`.
     pub fn filled(rows: usize, cols: usize, elem: T) -> Result<Self, ()> {
         if !Self::valid_size(rows, cols) {
             return Err(());
@@ -188,14 +270,35 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
         })
     }
 
+    /// Constructs a `BlockGrid<T, B>` from a slice in [row-major order][row_major].
+    ///
+    /// This method may be useful for converting from a typical 2D array.
+    ///
+    /// # Errors
+    ///
+    /// If invalid dimensions, either because `rows` and `cols` do not divide evenly into the block
+    /// size `B` or the length of `elems` does not match `rows * cols`.
+    ///
+    /// [row_major]: https://en.wikipedia.org/wiki/Row-_and_column-major_order
     pub fn from_row_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
         Self::from_array_index_helper(rows, cols, elems, |row, col| cols * row + col)
     }
 
+    /// Constructs a `BlockGrid<T, B>` from a slice in [column-major order][col_major].
+    ///
+    /// 2D arrays are not usually stored like this, but occasionally they are.
+    ///
+    /// # Errors
+    ///
+    /// If invalid dimensions, either because `rows` and `cols` do not divide evenly into the block
+    /// size `B` or the length of `elems` does not match `rows * cols`.
+    ///
+    /// [col_major]: https://en.wikipedia.org/wiki/Row-_and_column-major_order
     pub fn from_col_major(rows: usize, cols: usize, elems: &[T]) -> Result<Self, ()> {
         Self::from_array_index_helper(rows, cols, elems, |row, col| rows * col + row)
     }
 
+    /// Helper method to convert from a differently ordered array to a `BlockGrid<T, B>`.
     fn from_array_index_helper(
         rows: usize,
         cols: usize,
@@ -231,6 +334,11 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
 }
 
 impl<T: Clone + Default, B: BlockDim> BlockGrid<T, B> {
+    /// Constructs a `BlockGrid<T, B>` by filling with the default value of `T`.
+    ///
+    /// # Errors
+    ///
+    /// If  `rows` and `cols` do not divide evenly into the block size `B`.
     pub fn new(rows: usize, cols: usize) -> Result<Self, ()> {
         Self::filled(rows, cols, T::default())
     }
