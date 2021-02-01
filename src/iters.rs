@@ -1,3 +1,8 @@
+//! A bunch of custom 2D iterators.
+//!
+//! You probably won't need to interact with this module unless you need to name one of the
+//! iterator types explicitly.
+
 use core::iter::FusedIterator;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
@@ -5,11 +10,25 @@ use core::slice::{ChunksExact, ChunksExactMut, Iter, IterMut};
 
 use crate::{Block, BlockDim, BlockGrid, BlockMut, Coords};
 
-// TODO: Mention that it's sealed
+/// Provides an interface for iterators that can also yield 2D coordinates.
+///
+/// Note that this trait is sealed, meaning it cannot be implemented by downstream crates. This
+/// pattern is as described [here][sealing].
+///
+/// [`coords`]: Self::coords
+/// [sealing]: https://rust-lang.github.io/api-guidelines/future-proofing.html#sealed-traits-protect-against-downstream-implementations-c-sealed
 pub trait CoordsIterator: Iterator + private::Sealed {
-    // TODO: Hide from documentation
+    /// Returns the coordinates of the item *to be* yielded next.
+    ///
+    /// This is really just an implementation detail of [`WithCoordsIter`], so it probably shouldn't
+    /// be used. Just use [`coords`][Self::coords] to get the coordinates.
+    #[doc(hidden)]
     fn current_coords(&self) -> Coords;
 
+    /// Returns an iterator adapter that also gives coordinates as well as the next value.
+    ///
+    /// The iterator returned yields 2-tuples `(coords, elem)`, where `coords` is the coordinates
+    /// of the next element `elem`. This is essentially a 2D version of [`Iterator::enumerate`].
     fn coords(self) -> WithCoordsIter<Self>
     where
         Self: Sized,
@@ -18,6 +37,9 @@ pub trait CoordsIterator: Iterator + private::Sealed {
     }
 }
 
+/// Immutable iterator in memory order.
+///
+/// Created by the [`BlockGrid::each_iter`] method.
 #[derive(Clone, Debug)]
 pub struct EachIter<'a, T, B: BlockDim> {
     row: usize,
@@ -27,6 +49,9 @@ pub struct EachIter<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+/// Mutable iterator in memory order.
+///
+/// Created by the [`BlockGrid::each_iter_mut`] method.
 #[derive(Debug)]
 pub struct EachIterMut<'a, T, B: BlockDim> {
     row: usize,
@@ -36,6 +61,9 @@ pub struct EachIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+/// Immutable iterator over entire blocks.
+///
+/// Created by the [`BlockGrid::block_iter`] method.
 #[derive(Clone, Debug)]
 pub struct BlockIter<'a, T, B: BlockDim> {
     block_row: usize,
@@ -45,6 +73,9 @@ pub struct BlockIter<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+/// Mutable iterator over entire blocks.
+///
+/// Created by the [`BlockGrid::block_iter_mut`] method.
 #[derive(Debug)]
 pub struct BlockIterMut<'a, T, B: BlockDim> {
     block_row: usize,
@@ -54,6 +85,9 @@ pub struct BlockIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<B>,
 }
 
+/// Immutable iterator in row-major order.
+///
+/// Created by the [`BlockGrid::row_major_iter`] method.
 #[derive(Clone, Debug)]
 pub struct RowMajorIter<'a, T, B: BlockDim> {
     row: usize,
@@ -61,6 +95,9 @@ pub struct RowMajorIter<'a, T, B: BlockDim> {
     grid: &'a BlockGrid<T, B>,
 }
 
+/// Mutable iterator in row-major order.
+///
+/// Created by the [`BlockGrid::row_major_iter_mut`] method.
 #[derive(Debug)]
 pub struct RowMajorIterMut<'a, T, B: BlockDim> {
     row: usize,
@@ -69,6 +106,10 @@ pub struct RowMajorIterMut<'a, T, B: BlockDim> {
     _phantom: PhantomData<&'a mut BlockGrid<T, B>>,
 }
 
+/// An iterator adapter that yields the coordinates and the element.
+///
+/// This is created by the [`CoordsIterator::coords`] method on all the iterator types that
+/// implement the trait. See its documentation for more info.
 #[derive(Clone, Debug)]
 pub struct WithCoordsIter<I> {
     iter: I,
