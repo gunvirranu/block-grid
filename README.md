@@ -5,6 +5,7 @@
 #### A quick, cache-conscious, blocked 2D array
 
 [![Crate][crate_badge]][crate]
+[![Docs][docs_badge]][docs]
 [![License][license_badge]][license]
 [![CI][ci_badge]][ci]
 
@@ -99,6 +100,8 @@ If your access patterns suit a typical row-major memory representation, check ou
 <!-- Badges -->
 [crate]: https://crates.io/crates/block-grid "Crate"
 [crate_badge]: https://img.shields.io/crates/v/block-grid?logo=rust "Crate"
+[docs]: https://docs.rs/block-grid "Docs"
+[docs_badge]: https://docs.rs/block-grid/badge.svg "Docs"
 [ci]: https://github.com/gunvirranu/block-grid/actions "Github Actions"
 [ci_badge]: https://github.com/gunvirranu/block-grid/workflows/CI/badge.svg?branch=master "Github Actions"
 [license]: #license "License"
