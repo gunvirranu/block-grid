@@ -10,13 +10,13 @@ extern crate std;
 
 mod block_grid;
 mod block_width;
-mod iters;
+pub mod iters;
 
 #[cfg(test)]
 mod tests;
 
 pub use crate::block_grid::*;
 pub use crate::block_width::*;
-pub use crate::iters::*;
+pub use crate::iters::CoordsIterator;
 
 pub type Coords = (usize, usize);
