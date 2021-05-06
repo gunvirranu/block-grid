@@ -566,8 +566,10 @@ mod serde_hack {
     use core::convert::{From, TryFrom};
     use core::fmt;
 
-    // FIXME: Document
-    #[allow(missing_docs)]
+    /// Error if invalid dimensions are passed in or deserialized.
+    ///
+    /// Currently, only used for `serde` deserialization, but in the future, this should be used
+    /// for the [`BlockGrid<T, B>`] constructors as well.
     #[derive(Debug)]
     pub(super) struct InvalidSizeError;
 
@@ -577,6 +579,9 @@ mod serde_hack {
         }
     }
 
+    /// A "trick" to avoid writing (de)serialization code with validation.
+    ///
+    /// See PR for details.
     #[derive(Deserialize, Serialize)]
     pub(super) struct ShadowBlockGrid<T> {
         rows: usize,

@@ -4,8 +4,11 @@
 ## Unreleased
 
 - Cache `col_blocks` value in struct ([#66])
+- Add optional [Serde][serde] framework support ([#67])
 
 [#66]: https://github.com/gunvirranu/block-grid/pull/66
+[serde]: https://crates.io/crates/serde
+[#67]: https://github.com/gunvirranu/block-grid/pull/67
 
 ## 0.1.1 - 2021-02-01
 

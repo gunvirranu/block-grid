@@ -21,7 +21,7 @@
 - Block level access with `Block` and `BlockMut`
 - Constructors from row-major and column-major order arrays
 - Iterators for in-memory and row-major order, and by block
-- `no_std` support
+- `no_std` and [`serde`][serde] support
 
 ## Example
 
@@ -91,6 +91,7 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 If your access patterns suit a typical row-major memory representation, check out [`array2d`][array2d], [`imgref`][imgref], [`grid`][grid], or [`toodee`][toodee]. The last two support dynamic resizing. For matrices and linear algebra, there's also [`nalgebra`][nalgebra].
 
 <!-- Links -->
+[serde]: https://crates.io/crates/serde "serde"
 [array2d]: https://crates.io/crates/array2d "array2d"
 [imgref]: https://crates.io/crates/imgref "imgref"
 [grid]: https://crates.io/crates/grid "grid"
