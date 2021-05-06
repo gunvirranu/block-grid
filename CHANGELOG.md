@@ -3,7 +3,9 @@
 
 ## Unreleased
 
-- Nothing so far
+- Cache `col_blocks` value in struct ([#66])
+
+[#66]: https://github.com/gunvirranu/block-grid/pull/66
 
 ## 0.1.1 - 2021-02-01
 

@@ -15,6 +15,7 @@ use crate::{BlockDim, Coords};
 pub struct BlockGrid<T, B: BlockDim> {
     rows: usize,
     cols: usize,
+    col_blocks: usize,
     buf: Vec<T>,
     _phantom: PhantomData<B>,
 }
@@ -55,6 +56,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         Ok(Self {
             rows,
             cols,
+            col_blocks: cols / B::WIDTH,
             buf: elems,
             _phantom: PhantomData,
         })
@@ -93,7 +95,7 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     /// Returns the number of blocks in the horizontal direction.
     #[inline]
     pub fn col_blocks(&self) -> usize {
-        self.cols / B::WIDTH
+        self.col_blocks
     }
 
     /// Returns the total number of blocks.
@@ -249,7 +251,6 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
     fn calc_index(&self, (row, col): Coords) -> usize {
         // Get block
         let (b_row, b_col) = (row / B::WIDTH, col / B::WIDTH);
-        // TODO: Try caching `col_blocks` as struct field for potential speedup?
         let block_ind = B::AREA * (self.col_blocks() * b_row + b_col);
         // Offset within block
         let (s_row, s_col) = (row % B::WIDTH, col % B::WIDTH);
@@ -271,6 +272,7 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
         Ok(Self {
             rows,
             cols,
+            col_blocks: cols / B::WIDTH,
             buf: vec![elem; rows * cols],
             _phantom: PhantomData,
         })
@@ -317,6 +319,7 @@ impl<T: Clone, B: BlockDim> BlockGrid<T, B> {
         let mut grid = Self {
             rows,
             cols,
+            col_blocks: cols / B::WIDTH,
             buf: Vec::with_capacity(rows * cols),
             _phantom: PhantomData,
         };
