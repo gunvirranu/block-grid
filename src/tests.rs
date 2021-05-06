@@ -2,6 +2,7 @@ use std::vec::Vec;
 
 use crate::*;
 
+#[allow(clippy::upper_case_acronyms)]
 type BG<T, B> = BlockGrid<T, B>;
 
 fn gen_from_raw_vec<B: BlockDim>() {
