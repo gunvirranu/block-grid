@@ -5,12 +5,19 @@ use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::iters::{BlockIter, BlockIterMut, EachIter, EachIterMut, RowMajorIter, RowMajorIterMut};
 use crate::{BlockDim, Coords};
 
 /// A fixed-size 2D array with a blocked memory representation.
 ///
 /// See [crate-level documentation][crate] for general usage info.
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(bound(serialize = "T: Clone + Serialize")))]
+#[cfg_attr(feature = "serde", serde(try_from = "serde_hack::ShadowBlockGrid<T>"))]
+#[cfg_attr(feature = "serde", serde(into = "serde_hack::ShadowBlockGrid<T>"))]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct BlockGrid<T, B: BlockDim> {
     rows: usize,
@@ -550,5 +557,64 @@ impl<'a, T, B: BlockDim> IndexMut<Coords> for BlockMut<'a, T, B> {
     #[inline]
     fn index_mut(&mut self, coords: Coords) -> &mut Self::Output {
         self.get_mut(coords).expect("Coordinates out of bounds")
+    }
+}
+
+#[cfg(feature = "serde")]
+mod serde_hack {
+    use super::*;
+    use core::convert::{From, TryFrom};
+    use core::fmt;
+
+    // FIXME: Document
+    #[allow(missing_docs)]
+    #[derive(Debug)]
+    pub(super) struct InvalidSizeError;
+
+    impl fmt::Display for InvalidSizeError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "Dimensions are invalid")
+        }
+    }
+
+    #[derive(Deserialize, Serialize)]
+    pub(super) struct ShadowBlockGrid<T> {
+        rows: usize,
+        cols: usize,
+        #[serde(rename = "b")]
+        bwidth: usize,
+        buf: Vec<T>,
+    }
+
+    // Serialization
+    impl<T, B: BlockDim> From<BlockGrid<T, B>> for ShadowBlockGrid<T> {
+        fn from(bgrid: BlockGrid<T, B>) -> Self {
+            // Assumes `bgrid` is in valid state
+            Self {
+                rows: bgrid.rows(),
+                cols: bgrid.cols(),
+                bwidth: B::WIDTH,
+                buf: bgrid.take_raw_vec(),
+            }
+        }
+    }
+
+    // Deserialization
+    impl<T, B: BlockDim> TryFrom<ShadowBlockGrid<T>> for BlockGrid<T, B> {
+        type Error = InvalidSizeError;
+
+        fn try_from(shadow: ShadowBlockGrid<T>) -> Result<Self, Self::Error> {
+            let ShadowBlockGrid {
+                rows,
+                cols,
+                bwidth,
+                buf,
+            } = shadow;
+            // Check that deserialized data is a valid state
+            if bwidth != B::WIDTH {
+                return Err(InvalidSizeError);
+            }
+            Self::from_raw_vec(rows, cols, buf).map_err(|_| InvalidSizeError)
+        }
     }
 }
