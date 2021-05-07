@@ -292,6 +292,27 @@ fn gen_row_major_iter_mut<B: BlockDim>() {
     }
 }
 
+fn gen_round_up_to_valid<B: BlockDim>() {
+    let check_valid = |(rows, cols): (usize, usize)| {
+        rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
+    };
+    let checks = [
+        ((0, 0), (B::WIDTH, B::WIDTH)),
+        ((1, 1), (B::WIDTH, B::WIDTH)),
+        ((B::WIDTH, B::WIDTH + 1), (B::WIDTH, 2 * B::WIDTH)),
+        ((7 * B::WIDTH, 3 * B::WIDTH), (7 * B::WIDTH, 3 * B::WIDTH)),
+        (
+            (4 * B::WIDTH - 1, 4 * B::WIDTH + 1),
+            (4 * B::WIDTH, 5 * B::WIDTH),
+        ),
+    ];
+    for &((rows, cols), correct) in &checks {
+        let rounded = B::round_up_to_valid(rows, cols);
+        assert!(check_valid(rounded));
+        assert_eq!(rounded, correct);
+    }
+}
+
 macro_rules! test_for {
     ($f: ident; $($B: ty),+) => {
         $(
@@ -369,4 +390,9 @@ fn test_row_major_iter() {
 #[test]
 fn test_row_major_iter_mut() {
     test_for!(gen_row_major_iter_mut; U2, U4, U8, U16, U32);
+}
+
+#[test]
+fn test_round_up_to_valid() {
+    test_for!(gen_round_up_to_valid; U2, U4, U8, U16, U32);
 }

@@ -14,6 +14,9 @@ use crate::{BlockDim, Coords};
 /// A fixed-size 2D array with a blocked memory representation.
 ///
 /// See [crate-level documentation][crate] for general usage info.
+///
+/// If your dimensions are not a multiple of the block size, you can use the helper function
+/// [`BlockDim::round_up_to_valid`] to generate larger, valid dimensions.
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(bound(serialize = "T: Clone + Serialize")))]
 #[cfg_attr(feature = "serde", serde(try_from = "serde_hack::ShadowBlockGrid<T>"))]
