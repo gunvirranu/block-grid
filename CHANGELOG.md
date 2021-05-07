@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+Nothing so far.
+
+## 0.1.2 - 2021-05-07
+
 - Cache `col_blocks` value in struct ([#66])
 - Add optional [Serde][serde] framework support ([#67])
 - Memory slice access for blocks ([#68])
