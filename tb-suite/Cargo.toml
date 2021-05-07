@@ -7,12 +7,14 @@ edition = "2018"
 publish = false
 
 [dependencies]
-block-grid = { path = ".." }
+block-grid = { path = "..", features = ["serde"] }
 array2d = "0.2.1"
 
 [dev-dependencies]
 criterion = "0.3.3"
 fastrand = "1.3.3"
+serde = "1.0"
+serde_json = "1.0"
 
 [lib]
 bench = false
