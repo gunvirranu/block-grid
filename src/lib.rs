@@ -85,6 +85,20 @@
 //! count, then there's always [`Iterator::enumerate`].
 //!
 //! [coords]: CoordsIterator::coords
+//!
+//! # Optional Features
+//!
+//! ## Serde
+//!
+//! To use the [`serde`][serde] framework, enable the optional `serde` [feature] in your
+//! `Cargo.toml`. There is an important sublety to its usage. Because the block size is generic
+//! and compile-time, you have to know `B` when deserializing. You *could* write it decide based
+//! on the input data, but I think it would lead to a bunch of extra code-gen, so I've left it
+//! out. It does, however, verify that `B` is the same value as the one originally used to
+//! serialize. If you always know the `B` value, then this shouldn't matter at all.
+//!
+//! [serde]: https://crates.io/crates/serde
+//! [feature]: https://doc.rust-lang.org/cargo/reference/features.html
 
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]

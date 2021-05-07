@@ -12,6 +12,12 @@ categories = ["data-structures", "no-std", "memory-management"]
 keywords = ["array", "grid", "2d", "matrix"]
 exclude = ["/.github/"]
 
+[dependencies.serde]
+version = "1.0"
+optional = true
+default-features = false
+features = ["derive", "alloc"]
+
 [lib]
 bench = false
 
