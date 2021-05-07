@@ -164,13 +164,13 @@ impl<T, B: BlockDim> BlockGrid<T, B> {
         self.buf.get_unchecked_mut(ind)
     }
 
-    /// Borrow `BlockGrid<T, B>` as a slice in memory order.
+    /// Returns all elements as a slice in memory order.
     #[inline]
     pub fn raw(&self) -> &[T] {
         &self.buf
     }
 
-    /// Mutably borrow `BlockGrid<T, B>` as a mutable slice in memory order.
+    /// Returns all elements as a mutable slice in memory order.
     #[inline]
     pub fn raw_mut(&mut self) -> &mut [T] {
         &mut self.buf
@@ -438,6 +438,12 @@ impl<'a, T, B: BlockDim> Block<'a, T, B> {
         self.arr.get_unchecked(self.calc_index(coords))
     }
 
+    /// Returns all elements in block as a slice in memory order.
+    #[inline]
+    pub fn raw(&self) -> &[T] {
+        self.arr
+    }
+
     /// Returns the 1D memory index calculated from 2D coordinates.
     fn calc_index(&self, (row, col): Coords) -> usize {
         B::WIDTH * row + col
@@ -536,6 +542,18 @@ impl<'a, T, B: BlockDim> BlockMut<'a, T, B> {
     pub unsafe fn get_unchecked_mut(&mut self, coords: Coords) -> &mut T {
         debug_assert!(self.contains(coords));
         self.arr.get_unchecked_mut(self.calc_index(coords))
+    }
+
+    /// Returns all elements in block as a slice in memory order.
+    #[inline]
+    pub fn raw(&self) -> &[T] {
+        self.arr
+    }
+
+    /// Returns all elements in block as a mutable slice in memory order.
+    #[inline]
+    pub fn raw_mut(&mut self) -> &mut [T] {
+        self.arr
     }
 
     /// Returns the 1D memory index calculated from 2D coordinates.
