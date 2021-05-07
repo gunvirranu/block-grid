@@ -9,6 +9,30 @@ pub trait BlockDim: Clone {
     const AREA: usize = Self::WIDTH * Self::WIDTH;
     /// Bitmask for value.
     const MASK: usize = Self::WIDTH - 1;
+
+    /// Rounds up dimensions to next valid size. Returns `(rows, cols)`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use block_grid::{BlockDim, U4};
+    ///
+    /// // (3, 10) are not valid dimensions for a block size of 4
+    /// let new_valid = U4::round_up_to_valid(3, 10);
+    /// // (4, 12) are the returned valid dimensions
+    /// assert_eq!(new_valid, (4, 12));
+    /// ```
+    fn round_up_to_valid(rows: usize, cols: usize) -> (usize, usize) {
+        let round_up = |i: usize| {
+            let mut i = i.max(1);
+            let rem = i % Self::WIDTH;
+            if rem != 0 {
+                i += Self::WIDTH - rem;
+            }
+            i
+        };
+        (round_up(rows), round_up(cols))
+    }
 }
 
 macro_rules! make_block_width [
