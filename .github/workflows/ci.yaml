@@ -6,6 +6,8 @@ on:
       - master
     tags:
       - '[0-9]+.*'
+  schedule:
+    - cron: '37 4 * * SAT'
   pull_request:
 
 jobs:
