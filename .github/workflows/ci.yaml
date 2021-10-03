@@ -7,7 +7,7 @@ on:
     tags:
       - '[0-9]+.*'
   schedule:
-    - cron: '37 4 * * SAT'
+    - cron: '37 4 7 * *'
   pull_request:
 
 jobs:
