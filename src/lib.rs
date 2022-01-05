@@ -124,3 +124,6 @@ pub use crate::iters::CoordsIterator;
 
 /// Type alias for a 2-tuple of indices, representing 2D coordinates.
 pub type Coords = (usize, usize);
+
+/// Type alias for a typical 2D grid with standard row-major memory.
+pub type Grid<T> = BlockGrid<T, U1>;

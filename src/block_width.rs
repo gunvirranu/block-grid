@@ -50,6 +50,7 @@ macro_rules! make_block_width [
 ];
 
 make_block_width![
+    U1,   0;
     U2,   1;
     U4,   2;
     U8,   3;
