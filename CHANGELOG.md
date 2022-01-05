@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+- Nothing so far.
+
+## 0.1.3 - 2022-01-04
+
 - Add `U1` block size for disabling tiling ([#71])
 
 [#71]: https://github.com/gunvirranu/block-grid/pull/71
