@@ -85,7 +85,8 @@ fn indexing(c: &mut Criterion) {
 
 fn iterators(c: &mut Criterion) {
     let data: Vec<_> = gen_data(ROWS * COLS);
-    let grid = BlockGrid::<_, B>::from_raw_vec(ROWS, COLS, data).unwrap();
+    let grid = BlockGrid::<_, B>::from_raw_vec(ROWS, COLS, data.clone()).unwrap();
+    let grid_u1 = BlockGrid::<_, U1>::from_raw_vec(ROWS, COLS, data).unwrap();
 
     let mut g = c.benchmark_group("Iterators");
     g.bench_function("each_iter", |b| {
@@ -147,6 +148,14 @@ fn iterators(c: &mut Criterion) {
     g.bench_function("row_major_iter", |b| {
         b.iter(|| {
             for (c, x) in grid.row_major_iter().coords() {
+                black_box((c, x));
+            }
+        })
+    });
+
+    g.bench_function("row_major_iter_u1_coords", |b| {
+        b.iter(|| {
+            for (c, x) in grid_u1.row_major_iter().coords() {
                 black_box((c, x));
             }
         })
