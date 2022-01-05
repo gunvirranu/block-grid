@@ -22,6 +22,7 @@
 - Constructors from row-major and column-major order arrays
 - Iterators for in-memory and row-major order, and by block
 - `no_std` and [`serde`][serde] support
+- Also supports no blocks (i.e. classic row-major)
 
 ## Example
 
@@ -88,7 +89,7 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Alternatives
 
-If your access patterns suit a typical row-major memory representation, check out [`array2d`][array2d], [`imgref`][imgref], [`grid`][grid], or [`toodee`][toodee]. The last two support dynamic resizing. For matrices and linear algebra, there's also [`nalgebra`][nalgebra].
+If your access patterns suit a typical row-major memory representation, you can still use `block-grid`! If you truly desire alternatives, however, check out [`array2d`][array2d], [`imgref`][imgref], [`grid`][grid], or [`toodee`][toodee]. The last two support dynamic resizing. For matrices and linear algebra, there's also [`nalgebra`][nalgebra].
 
 <!-- Links -->
 [serde]: https://crates.io/crates/serde "serde"
