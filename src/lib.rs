@@ -2,7 +2,9 @@
 //!
 //! `block-grid` gives you a fixed-size 2D array with a blocked / tiled memory representation.
 //! This has the sweet benefit of being much more cache-friendly if you're often accessing nearby
-//! coordinates. It also offers a bunch of utility methods and block access.
+//! coordinates. It also offers a bunch of utility methods and block access. If you don't care
+//! about tiled memory and just want any 2D-grid, see the
+//! ["Using without Blocks"](#using-without-blocks-good-ol-row-major) section below.
 //!
 //! # Example
 //!
@@ -86,12 +88,19 @@
 //!
 //! [coords]: CoordsIterator::coords
 //!
+//! ## Using without Blocks (Good Ol' Row-Major)
+//!
+//! If you wanna test performance against an non-blocked memory representation, you need both, or
+//! you just like the rest of the interface but don't care about the blocks, we got you. Just use
+//! the [`U1`] block size or the handy [`Grid<T>`] alias. All the block related methods still exist
+//! and are correct, but are just functionally useless.
+//!
 //! # Optional Features
 //!
 //! ## Serde
 //!
 //! To use the [`serde`][serde] framework, enable the optional `serde` [feature] in your
-//! `Cargo.toml`. There is an important sublety to its usage. Because the block size is generic
+//! `Cargo.toml`. There is an important subtlety to its usage. Because the block size is generic
 //! and compile-time, you have to know `B` when deserializing. You *could* write it decide based
 //! on the input data, but I think it would lead to a bunch of extra code-gen, so I've left it
 //! out. It does, however, verify that `B` is the same value as the one originally used to
@@ -124,3 +133,6 @@ pub use crate::iters::CoordsIterator;
 
 /// Type alias for a 2-tuple of indices, representing 2D coordinates.
 pub type Coords = (usize, usize);
+
+/// Type alias for a typical 2D grid with standard row-major memory.
+pub type Grid<T> = BlockGrid<T, U1>;

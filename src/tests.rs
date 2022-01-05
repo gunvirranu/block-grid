@@ -53,8 +53,13 @@ fn gen_from_col_major<B: BlockDim>() {
 }
 
 fn gen_constructor_invalid<B: BlockDim>() {
+    let mut invalid_sizes = vec![(0, 0), (B::WIDTH, 0), (0, B::WIDTH)];
+    // Ignore non-factor sizes if block-width is 1
+    if B::WIDTH != 1 {
+        invalid_sizes.extend([(3, 5), (7, 13), (B::WIDTH * 3 - 1, B::WIDTH)]);
+    }
     // Try invalid sizes
-    for &(rows, cols) in &[(0, 0), (B::WIDTH, 0), (0, B::WIDTH), (3, 5), (7, 13)] {
+    for (rows, cols) in invalid_sizes {
         let data: Vec<_> = (0..(rows * cols)).collect();
         assert!(BG::<_, B>::from_raw_vec(rows, cols, data.clone()).is_err());
         assert!(BG::<_, B>::filled(rows, cols, 7).is_err());
@@ -62,7 +67,7 @@ fn gen_constructor_invalid<B: BlockDim>() {
         assert!(BG::<_, B>::from_col_major(rows, cols, &data).is_err());
     }
     // Try giving invalid data length
-    let (rows, cols) = (B::WIDTH, B::WIDTH);
+    let (rows, cols) = (2 * B::WIDTH, 3 * B::WIDTH);
     let data: Vec<_> = (0..B::WIDTH).collect();
     assert!(BG::<_, B>::filled(rows, cols, 9).is_ok());
     assert!(BG::<_, B>::from_raw_vec(rows, cols, data.clone()).is_err());
@@ -296,17 +301,24 @@ fn gen_round_up_to_valid<B: BlockDim>() {
     let check_valid = |(rows, cols): (usize, usize)| {
         rows > 0 && cols > 0 && rows % B::WIDTH == 0 && cols % B::WIDTH == 0
     };
-    let checks = [
+    let mut checks = vec![
         ((0, 0), (B::WIDTH, B::WIDTH)),
         ((1, 1), (B::WIDTH, B::WIDTH)),
-        ((B::WIDTH, B::WIDTH + 1), (B::WIDTH, 2 * B::WIDTH)),
-        ((7 * B::WIDTH, 3 * B::WIDTH), (7 * B::WIDTH, 3 * B::WIDTH)),
-        (
-            (4 * B::WIDTH - 1, 4 * B::WIDTH + 1),
-            (4 * B::WIDTH, 5 * B::WIDTH),
-        ),
+        ((B::WIDTH, B::WIDTH), (B::WIDTH, B::WIDTH)),
     ];
-    for &((rows, cols), correct) in &checks {
+    if B::WIDTH == 1 {
+        checks.extend([((3, 7), (3, 7)), ((5, 5), (5, 5))]);
+    } else {
+        checks.extend([
+            ((B::WIDTH, B::WIDTH + 1), (B::WIDTH, 2 * B::WIDTH)),
+            ((7 * B::WIDTH, 3 * B::WIDTH), (7 * B::WIDTH, 3 * B::WIDTH)),
+            (
+                (4 * B::WIDTH - 1, 4 * B::WIDTH + 1),
+                (4 * B::WIDTH, 5 * B::WIDTH),
+            ),
+        ]);
+    }
+    for ((rows, cols), correct) in checks {
         let rounded = B::round_up_to_valid(rows, cols);
         assert!(check_valid(rounded));
         assert_eq!(rounded, correct);
@@ -324,75 +336,75 @@ macro_rules! test_for {
 
 #[test]
 fn test_from_raw_vec() {
-    test_for!(gen_from_raw_vec; U2, U4, U8, U16, U32);
+    test_for!(gen_from_raw_vec; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_filled() {
-    test_for!(gen_filled; U2, U4, U8, U16, U32);
+    test_for!(gen_filled; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_from_row_major() {
-    test_for!(gen_from_row_major; U2, U4, U8, U16, U32);
+    test_for!(gen_from_row_major; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_from_col_major() {
-    test_for!(gen_from_col_major; U2, U4, U8, U16, U32);
+    test_for!(gen_from_col_major; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_constructor_invalid() {
-    test_for!(gen_constructor_invalid; U2, U4, U8, U16, U32);
+    test_for!(gen_constructor_invalid; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_get_and_get_mut() {
-    test_for!(gen_get_and_get_mut; U2, U4, U8, U16, U32);
+    test_for!(gen_get_and_get_mut; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_block_size() {
-    test_for!(gen_block_size; U2, U4, U8, U16, U32);
+    test_for!(gen_block_size; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_contains() {
-    test_for!(gen_contains; U2, U4, U8, U16, U32);
+    test_for!(gen_contains; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_each_iter() {
-    test_for!(gen_each_iter; U2, U4, U8, U16, U32);
+    test_for!(gen_each_iter; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_each_iter_mut() {
-    test_for!(gen_each_iter_mut; U2, U4, U8, U16, U32);
+    test_for!(gen_each_iter_mut; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_block_iter() {
-    test_for!(gen_block_iter; U2, U4, U8, U16, U32);
+    test_for!(gen_block_iter; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_block_iter_mut() {
-    test_for!(gen_block_iter_mut; U2, U4, U8, U16, U32);
+    test_for!(gen_block_iter_mut; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_row_major_iter() {
-    test_for!(gen_row_major_iter; U2, U4, U8, U16, U32);
+    test_for!(gen_row_major_iter; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_row_major_iter_mut() {
-    test_for!(gen_row_major_iter_mut; U2, U4, U8, U16, U32);
+    test_for!(gen_row_major_iter_mut; U1, U2, U4, U8, U16, U32);
 }
 
 #[test]
 fn test_round_up_to_valid() {
-    test_for!(gen_round_up_to_valid; U2, U4, U8, U16, U32);
+    test_for!(gen_round_up_to_valid; U1, U2, U4, U8, U16, U32);
 }

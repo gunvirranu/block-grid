@@ -11,6 +11,15 @@ use serde::{Deserialize, Serialize};
 type BG<T, B> = BlockGrid<T, B>;
 
 #[test]
+fn test_serdes_u1() {
+    let bg = BG::<usize, U1>::filled(7, 13, 19).unwrap();
+    let s = serde_json::to_string(&bg).unwrap();
+    let ds = serde_json::from_str::<BG<_, U1>>(&s).unwrap();
+    assert_eq!(ds, bg);
+    assert!(serde_json::from_str::<BG<usize, U2>>(&s).is_err());
+}
+
+#[test]
 fn test_serdes_u8() {
     let bg = BG::<u8, U2>::filled(4, 8, 7).unwrap();
     let s = serde_json::to_string(&bg).unwrap();
