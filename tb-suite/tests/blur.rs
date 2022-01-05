@@ -65,6 +65,7 @@ fn gen_test_idiomatic<B: BlockDim>(rows: usize, cols: usize) {
 
 #[test]
 fn test_blur_by_index() {
+    gen_test_index::<U1>(7, 13);
     gen_test_index::<U2>(30, 30);
     gen_test_index::<U8>(16, 40);
     gen_test_index::<U32>(96, 64);
@@ -72,6 +73,7 @@ fn test_blur_by_index() {
 
 #[test]
 fn test_blur_idiomatic() {
+    gen_test_idiomatic::<U1>(7, 13);
     gen_test_idiomatic::<U2>(30, 30);
     gen_test_idiomatic::<U8>(16, 40);
     gen_test_idiomatic::<U32>(96, 64);
