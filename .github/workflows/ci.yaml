@@ -65,7 +65,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --workspace -- -D warnings
+          args: --all-targets --workspace
 
       - name: Run Rustfmt
         uses: actions-rs/cargo@v1

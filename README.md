@@ -13,6 +13,8 @@
 
 `block-grid` gives you a fixed size, two-dimensional array, with a blocked memory representation. This has the sweet benefit of being much more cache-friendly if you're often accessing nearby coordinates.
 
+This library works and is stable, and will not be worked on actively. I am more than happy to review PRs if there's a need :)
+
 ## Features
 
 - Can store any type
