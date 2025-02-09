@@ -1,9 +1,11 @@
 
 # Changelog
 
-## Unreleased
+## 1.0.0 - 2024-02-09
 
-- Nothing so far.
+- No actual features added
+- Add notice that lib is complete and stable
+- No plans to work on further
 
 ## 0.1.3 - 2022-01-04
 
@@ -41,4 +43,3 @@
 First release.
 
 - Added like everything.
-
