@@ -1,6 +1,6 @@
 [package]
 name = "block-grid"
-version = "0.1.3"
+version = "1.0.0"
 authors = ["Gunvir Singh Ranu <mail@gunvirranu.com>"]
 description = "A quick, cache-conscious, tiled 2D array."
 edition = "2018"
