@@ -107,6 +107,6 @@ If your access patterns suit a typical row-major memory representation, you can 
 [docs]: https://docs.rs/block-grid "Docs"
 [docs_badge]: https://docs.rs/block-grid/badge.svg "Docs"
 [ci]: https://github.com/gunvirranu/block-grid/actions "Github Actions"
-[ci_badge]: https://github.com/gunvirranu/block-grid/workflows/CI/badge.svg?branch=master "Github Actions"
+[ci_badge]: https://github.com/gunvirranu/block-grid/actions/workflows/ci.yaml/badge.svg "Github Actions"
 [license]: #license "License"
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg "License"
