@@ -7,10 +7,19 @@ on:
     tags:
       - '[0-9]+.*'
   schedule:
-    - cron: '37 4 7 * *'
+    - cron: '37 4 * * 6'
   pull_request:
 
 jobs:
+
+  workflow-keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: liskin/gh-workflow-keepalive@v1
+
   test:
     name: Test
     runs-on: ubuntu-latest
